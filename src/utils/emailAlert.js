@@ -40,7 +40,10 @@ export async function sendStockAlertEmail({
     </div>
   `.trim();
 
-  // 1. Forsøg at sende via den lokale server /api/send-email
+  // 1. Forsøg at sende via den lokale server /api/send-email (støtter Gmail SMTP & Resend)
+  const appPassword = localStorage.getItem("sincity_gmail_app_password") || "";
+  const resendApiKey = localStorage.getItem("sincity_resend_api_key") || "";
+
   try {
     const res = await fetch("/api/send-email", {
       method: "POST",
@@ -49,12 +52,24 @@ export async function sendStockAlertEmail({
         to: toEmail,
         subject,
         html: htmlContent,
-        text: `${subject}\nAktie: ${stockName} (${symbol})\nKurs: ${currentPrice} kr.\nAfvigelse: ${diffPct}%\nÅbn appen: http://127.0.0.1:5173/`
+        text: `${subject}\nAktie: ${stockName} (${symbol})\nKurs: ${currentPrice} kr.\nAfvigelse: ${diffPct}%\nÅbn appen: http://127.0.0.1:5173/`,
+        appPassword,
+        resendApiKey,
+        senderEmail: toEmail
       })
     });
     if (res.ok) {
       const data = await res.json();
-      return { success: true, message: "E-mail afsendt!", details: data };
+      return { 
+        success: true, 
+        message: data.method === "gmail_smtp" 
+          ? "Rigtig e-mail sendt direkte til din Gmail indbakke via SMTP!" 
+          : data.method === "resend" 
+            ? "Rigtig e-mail sendt via Resend!" 
+            : "E-mail registreret og push-alarm sendt!",
+        method: data.method,
+        details: data 
+      };
     }
   } catch (err) {
     console.warn("Lokal email API fejlede, benytter fallback", err);

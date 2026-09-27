@@ -26,7 +26,11 @@ import {
   ArrowLeft,
   Mail,
   Send,
-  AtSign
+  AtSign,
+  Settings,
+  Smartphone,
+  ExternalLink,
+  Key
 } from "lucide-react";
 import { formatCurrency, formatPercent } from "../utils/calculations";
 import { playAlertChime, requestNotificationPermission } from "../utils/audioAlert";
@@ -113,6 +117,9 @@ export function StockRadar({
   const [isEmailAlertEnabled, setIsEmailAlertEnabled] = useState(() => localStorage.getItem("sincity_email_alerts_enabled") !== "false");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [testEmailStatus, setTestEmailStatus] = useState(null);
+  const [isEmailSettingsOpen, setIsEmailSettingsOpen] = useState(false);
+  const [gmailAppPassword, setGmailAppPassword] = useState(() => localStorage.getItem("sincity_gmail_app_password") || "");
+  const [resendApiKey, setResendApiKey] = useState(() => localStorage.getItem("sincity_resend_api_key") || "");
   const [sentEmailLogs, setSentEmailLogs] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("sincity_sent_emails") || "[]");
@@ -129,6 +136,16 @@ export function StockRadar({
   const handleToggleEmailAlert = (val) => {
     setIsEmailAlertEnabled(val);
     localStorage.setItem("sincity_email_alerts_enabled", val ? "true" : "false");
+  };
+
+  const handleUpdateAppPassword = (val) => {
+    setGmailAppPassword(val);
+    localStorage.setItem("sincity_gmail_app_password", val);
+  };
+
+  const handleUpdateResendApiKey = (val) => {
+    setResendApiKey(val);
+    localStorage.setItem("sincity_resend_api_key", val);
   };
 
   const handleSendTestEmail = async () => {
@@ -1077,10 +1094,74 @@ export function StockRadar({
             )}
 
             {/* Hjælpeboks & Seneste afsendte mails */}
-            <div className="pt-1 text-[11px] text-slate-400 space-y-1.5">
-              <p>
-                ✓ E-mailen indeholder aktuel børskurs, beregnet gevinstmål (+2-3%) og direkte link til Sincity Aktie Radar.
-              </p>
+            <div className="pt-1 text-[11px] text-slate-400 space-y-2">
+              <div className="flex items-center justify-between">
+                <span>✓ E-mailen indeholder kurs, swing-mål (+2-3%) og direkte link.</span>
+                <button
+                  type="button"
+                  onClick={() => setIsEmailSettingsOpen(prev => !prev)}
+                  className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <Settings className="w-3 h-3" />
+                  <span>{isEmailSettingsOpen ? "Skjul indstillinger" : "Avanceret (Rigtig Gmail / Telefon)"}</span>
+                </button>
+              </div>
+
+              {/* Avancerede indstillinger for rigtig afsendelse */}
+              {isEmailSettingsOpen && (
+                <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700 space-y-3 animate-fade-in">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                    <Key className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Forbind til rigtig Gmail-levering</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-slate-400 block">
+                      Google App-adgangskode (16 bogstaver, f.eks. "abcd efgh ijkl mnop"):
+                    </label>
+                    <input
+                      type="password"
+                      value={gmailAppPassword}
+                      onChange={(e) => handleUpdateAppPassword(e.target.value)}
+                      placeholder="Indsæt Google App Password..."
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                    />
+                    <div className="text-[10px] text-slate-400 pt-0.5">
+                      💡 Google tillader ikke dit normale kodeord. Opret en 16-bogstavs app-kode på 20 sekunder her:{" "}
+                      <a 
+                        href="https://myaccount.google.com/apppasswords" 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="text-amber-400 hover:underline inline-flex items-center gap-0.5 font-semibold"
+                      >
+                        myaccount.google.com/apppasswords <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                        <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Live Telefon Push (0 koder)</span>
+                      </span>
+                      <a
+                        href="https://ntfy.sh/sincity_aktie_radar"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2.5 py-1 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 font-bold text-[10px] rounded-lg border border-blue-500/30 inline-flex items-center gap-1"
+                      >
+                        <span>Åbn ntfy.sh</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Åbn linket på din iPhone/Android og tryk "Abonner", så vibrerer og bipper din mobil med det samme ved hver 2–3% alarm!
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {sentEmailLogs.length > 0 && (
                 <div className="mt-2 pt-2 border-t border-slate-800/80">
                   <div className="text-[10px] text-slate-400 font-mono flex items-center justify-between mb-1">
