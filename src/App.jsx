@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Header } from "./components/Header";
 import { PortfolioSummary } from "./components/PortfolioSummary";
-import { AssetAllocation } from "./components/AssetAllocation";
 import { HoldingCard } from "./components/HoldingCard";
 import { HoldingDetailModal } from "./components/HoldingDetailModal";
 import { AddTransactionModal } from "./components/AddTransactionModal";
@@ -446,12 +445,6 @@ export default function App() {
                   </div>
                 </div>
               </div>
-
-              <AssetAllocation
-                holdingMetrics={portfolioSummary.holdingMetrics}
-                totalValue={portfolioSummary.totalValue}
-                currency={currency}
-              />
 
               {/* Dine Aktier med "Indtast Min Beholdning" knap */}
               <div className="px-4 py-2">
