@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAUP4EmdtP8pzsUEFfXdr7K5r45dB649W4",
@@ -12,15 +13,17 @@ const firebaseConfig = {
 
 let app;
 let db;
+let auth;
 
 try {
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   db = getFirestore(app);
+  auth = getAuth(app);
 } catch (err) {
   console.warn("Firebase initialisering fejlede", err);
 }
 
-export { db };
+export { db, auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut };
 
 // Gem portefølje, beholdninger og alarmer i Firestore
 export async function savePortfolioToCloud(userId = "user_portfolio", data) {

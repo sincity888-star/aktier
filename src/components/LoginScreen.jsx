@@ -1,16 +1,35 @@
 import React, { useState } from "react";
-import { Lock, Mail, KeyRound, ChevronRight, ShieldCheck, Activity } from "lucide-react";
+import { Lock, Mail, KeyRound, ChevronRight, ShieldCheck, Activity, Loader2 } from "lucide-react";
+import { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "../utils/firebase";
 
 export function LoginScreen({ onLogin }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Midlertidig simulering af login:
-    if (email && password) {
-      onLogin({ email, uid: "simulated_user_id" });
+    if (!email || !password) return;
+    
+    setIsLoading(true);
+    setError("");
+
+    try {
+      if (isRegistering) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      // Bemærk: onAuthStateChanged i App.jsx håndterer selve login-statet
+    } catch (err) {
+      let msg = "Der opstod en fejl.";
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") msg = "Forkert e-mail eller adgangskode.";
+      if (err.code === "auth/email-already-in-use") msg = "E-mailen er allerede i brug.";
+      if (err.code === "auth/weak-password") msg = "Adgangskoden skal være mindst 6 tegn.";
+      setError(msg);
+      setIsLoading(false);
     }
   };
 
@@ -78,12 +97,25 @@ export function LoginScreen({ onLogin }) {
               </div>
             </div>
 
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs px-4 py-3 rounded-xl font-medium">
+                {error}
+              </div>
+            )}
+
             <button 
               type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-base py-4 rounded-2xl shadow-[0_4px_20px_rgba(37,99,235,0.3)] active:scale-[0.98] transition-all mt-4"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed text-white font-extrabold text-base py-4 rounded-2xl shadow-[0_4px_20px_rgba(37,99,235,0.3)] active:scale-[0.98] transition-all mt-4"
             >
-              {isRegistering ? "Opret Konto" : "Log Ind"}
-              <ChevronRight className="w-5 h-5" />
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  {isRegistering ? "Opret Konto" : "Log Ind"}
+                  <ChevronRight className="w-5 h-5" />
+                </>
+              )}
             </button>
           </form>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { TrendingUp, RefreshCw, Smartphone, Monitor, Plus, ArrowLeft, Sun, Moon } from "lucide-react";
+import { TrendingUp, RefreshCw, Smartphone, Monitor, Plus, ArrowLeft, Sun, Moon, LogOut } from "lucide-react";
 
 export function Header({
   activeTab,
@@ -109,6 +109,20 @@ export function Header({
             ) : (
               <Sun className="w-3.5 h-3.5 text-amber-400" />
             )}
+          </button>
+
+          {/* Log Ud knap */}
+          <button
+            type="button"
+            onClick={() => {
+              import('../utils/firebase').then(({ auth, signOut }) => {
+                signOut(auth).catch(err => console.error("Logout fejl:", err));
+              });
+            }}
+            className="w-7 h-7 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-rose-400 hover:border-rose-500/50 hover:bg-rose-500/10 items-center justify-center transition-all flex active:scale-90 shadow-sm cursor-pointer ml-1"
+            title="Log ud"
+          >
+            <LogOut className="w-3.5 h-3.5" />
           </button>
 
           {/* Hurtig Tilføj knap */}

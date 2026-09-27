@@ -22,11 +22,21 @@ import { getPortfolioSummary, getDanishMarketStatus } from "./utils/calculations
 import { fetchLiveStockData } from "./utils/stockApi";
 import { playAlertChime, sendBrowserNotification } from "./utils/audioAlert";
 import { sendStockAlertEmail } from "./utils/emailAlert";
-import { savePortfolioToCloud, subscribeToCloudPortfolio } from "./utils/firebase";
-import { History, Plus, Target, BellRing, ArrowRight, ArrowLeft, Edit, Cloud, ShieldCheck } from "lucide-react";
+import { auth, onAuthStateChanged, signOut, savePortfolioToCloud, subscribeToCloudPortfolio } from "./utils/firebase";
+import { History, Plus, Target, BellRing, ArrowRight, ArrowLeft, Edit, Cloud, ShieldCheck, LogOut } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+  // Lyt til Firebase login-status
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsAuthChecking(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Gemte data (v2 version for at rydde gamle demoaktier)
   const [stocks, setStocks] = useState(() => {
@@ -446,6 +456,17 @@ export default function App() {
     setTradeModalType(type);
     setIsAddModalOpen(true);
   };
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-sm font-semibold text-slate-400">Verificerer adgang...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <LoginScreen onLogin={(userData) => setUser(userData)} />;
