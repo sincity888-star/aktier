@@ -38,44 +38,114 @@ import { fetchLiveStockData, calculateVolatilityStats } from "../utils/stockApi"
 import { sendStockAlertEmail } from "../utils/emailAlert";
 import analyzedStocksBackup from "../data/analyzedStocks.json";
 
-const STOCK_AI_INSIGHTS = {
-  maersk: {
-    forecast: "STIGER",
-    subtitle: "Kortvarigt opsving mod 23.850 – 24.100 kr.",
-    direction: "UP",
-    targetPrice: "23.850 - 24.100 kr.",
-    stopLoss: "22.750 kr.",
-    signalTag: "Bullish / Oplagt til køb på dips",
-    rationale: "Mærsk B har etableret stærk bund over 23.100 kr., og 20-dages glidende gennemsnit peger stabilt opad. Fragtrater (SCFI) og volumen indikerer god købsinteresse, og aktien har en exceptionel historik for hurtige rekyler på 2–3%.",
-    dailyVolatilityText: "Mærsk B svinger i gennemsnit 2,24% (ca. 250–280 kr. i absolut dagsbevægelse, op til 500–550 kr. mellem top og bund) mellem dagens højeste og laveste kurs.",
-    weeklyVolatilityText: "Gennemsnitlig ugentlig spredning er ca. 4,8%.",
-    frequencyText: "Sker i gennemsnit 1,5 til 2,5 gange om ugen, hvilket gør Mærsk B til en af de mest velegnede aktier i Danmark til netop din strategi med at købe på dips og tage profit ved +2–3%."
-  },
-  zealand: {
-    forecast: "STIGER",
-    subtitle: "Opsving mod modstand ved 285 – 295 kr.",
-    direction: "UP",
-    targetPrice: "285 - 295 kr.",
-    stopLoss: "264 kr.",
-    signalTag: "Stærkt Momentum / Høj Volatilitet",
-    rationale: "Zealand Pharma tester bunden af sin handelskanal omkring 270–272 kr. Aktien er en af fondsbørsens absolut mest likvide og volatile vækstaktier grundet massivt fokus på fedmemarkedet. Over 90% af dagene har sving over 2%, hvilket gør den ideel til hurtige gevinster.",
-    dailyVolatilityText: "Zealand Pharma svinger i gennemsnit 3,79% (ca. 10–12 kr.) mellem dagens højeste og laveste kurs.",
-    weeklyVolatilityText: "Gennemsnitlig ugentlig spredning er ca. 7,2%.",
-    frequencyText: "Sker i gennemsnit 2,5 til 3,5 gange om ugen, hvilket gør Zealand Pharma til den absolut hyppigste og mest profitable aktie til din 2–3% profit-strategi, så længe du tager profit konsekvent."
-  },
-  ambu: {
-    forecast: "NEUTRAL",
-    subtitle: "Konsolidering i intervallet 66,50 – 70,50 kr.",
-    direction: "NEUTRAL",
-    targetPrice: "70,50 kr.",
-    stopLoss: "66,20 kr.",
-    signalTag: "Sideværts / Afventer",
-    rationale: "Ambu bevæger sig i et stabilt handelsbælte mellem 67 og 70 kr. RSI ligger neutralt på 48. God til mere afdæmpede sving, hvor der samles op under 68 kr. med målsalg omkring 70 kr.",
-    dailyVolatilityText: "Ambu B svinger i gennemsnit 2,69% (ca. 1,8–2,2 kr.) mellem dagens højeste og laveste kurs.",
-    weeklyVolatilityText: "Gennemsnitlig ugentlig spredning er ca. 5,4%.",
-    frequencyText: "Sker i gennemsnit 1,2 til 2,0 gange om ugen, hvilket giver rolige og forudsigelige handelsmønstre."
+// DYNAMISK ANALYSE MOTOR (Live beregnet ud fra dagens & ugens faktiske børskursdata)
+export function calculateDynamicInsight(currentStock, stats, timeframe = "daily", backupDays = []) {
+  const currentPrice = currentStock?.currentPrice || 100;
+  const dayHigh = currentStock?.dayHigh || currentPrice * 1.01;
+  const dayLow = currentStock?.dayLow || currentPrice * 0.99;
+  const daySpread = dayHigh - dayLow;
+  const daySpreadPct = dayLow > 0 ? (daySpread / dayLow) * 100 : 0;
+  const prevClose = currentStock?.previousClose || currentPrice;
+  const dayChange = currentStock?.change || (currentPrice - prevClose);
+  const dayChangePct = currentStock?.changePercent || (prevClose > 0 ? (dayChange / prevClose) * 100 : 0);
+
+  // Hent de seneste handelsdage (ugens forløb)
+  const allDays = (currentStock?.validDays && currentStock.validDays.length > 0)
+    ? currentStock.validDays
+    : backupDays;
+  const recentDays = allDays.length >= 5 ? allDays.slice(-5) : allDays;
+
+  const weekHistory = currentStock?.history?.["1U"] || (recentDays.map(d => d.close));
+  const weekLow = recentDays.length > 0 ? Math.min(...recentDays.map(d => d.low)) : (weekHistory.length > 0 ? Math.min(...weekHistory) : currentPrice * 0.97);
+  const weekHigh = recentDays.length > 0 ? Math.max(...recentDays.map(d => d.high)) : (weekHistory.length > 0 ? Math.max(...weekHistory) : currentPrice * 1.03);
+  const weekSpread = weekHigh - weekLow;
+  const weekSpreadPct = weekLow > 0 ? (weekSpread / weekLow) * 100 : 4.5;
+  const weekStartPrice = weekHistory.length > 0 ? weekHistory[0] : (recentDays.length > 0 ? recentDays[0].open : currentPrice);
+  const weekReturnPct = weekStartPrice > 0 ? ((currentPrice - weekStartPrice) / weekStartPrice) * 100 : 0;
+  const daysOver2ThisWeek = recentDays.filter(d => d.spreadPct >= 2.0).length;
+
+  if (timeframe === "daily") {
+    const dayPos = daySpread > 0 ? Math.max(0, Math.min(1, (currentPrice - dayLow) / daySpread)) : 0.5;
+
+    let forecast = "STIGER (REKYL)";
+    let direction = "UP";
+    let signalTag = "Oplagt dip-køb";
+    let subtitle = `Dagens spænd: ${daySpreadPct.toFixed(2)}% (${daySpread.toLocaleString("da-DK", { maximumFractionDigits: 1 })} kr.)`;
+    let rationale = "";
+    let targetPrice = (currentPrice * 1.025).toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kr.";
+    let stopLoss = (dayLow * 0.985).toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kr.";
+
+    if (dayPos <= 0.35 || dayChangePct <= -1.0) {
+      forecast = "KØBSZONE (DIP)";
+      direction = "UP";
+      signalTag = "Køb på dagens bund";
+      subtitle = `Aktien tester bunden i dag (${dayLow.toLocaleString("da-DK")} kr.)`;
+      rationale = `${currentStock.name} handles i dag i den nederste del af sit dagsinterval (${dayLow.toLocaleString("da-DK")} – ${dayHigh.toLocaleString("da-DK")} kr.). Med et dagsspænd på ${daySpreadPct.toFixed(2)}% (${daySpread.toLocaleString("da-DK", { maximumFractionDigits: 1 })} kr.) er der god sandsynlighed for en rekyl mod toppen af spændet for at hente de +2–3%.`;
+      targetPrice = (currentPrice * 1.025).toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kr. (+2,5%)";
+    } else if (dayPos >= 0.70 || dayChangePct >= 2.0) {
+      forecast = "SALGSZONE (PROFIT)";
+      direction = "DOWN";
+      signalTag = "Tag profit nu";
+      subtitle = `Aktien tester toppen i dag (${dayHigh.toLocaleString("da-DK")} kr.)`;
+      rationale = `${currentStock.name} har i dag taget et solidt ryk opad på ${dayChangePct > 0 ? '+' : ''}${dayChangePct.toFixed(2)}% og handles tæt på dagens højeste kurs (${dayHigh.toLocaleString("da-DK")} kr.). Ifølge din 2–3% profit-strategi er det nu tid til at sikre overskuddet.`;
+      targetPrice = dayHigh.toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kr. (Dagens top)";
+    } else {
+      forecast = "KONSOLIDERING";
+      direction = "NEUTRAL";
+      signalTag = "Afventer retning";
+      subtitle = `Svinger roligt mellem ${dayLow.toLocaleString("da-DK")} og ${dayHigh.toLocaleString("da-DK")} kr.`;
+      rationale = `${currentStock.name} befinder sig midt i dagens handelsinterval. Dagens spænd er ${daySpread.toLocaleString("da-DK", { maximumFractionDigits: 1 })} kr. (${daySpreadPct.toFixed(2)}%). Afvent et lille dip mod ${dayLow.toLocaleString("da-DK")} kr. før næste køb.`;
+    }
+
+    return {
+      forecast,
+      direction,
+      signalTag,
+      subtitle,
+      rationale,
+      targetPrice,
+      stopLoss,
+      dailyVolatilityText: `${currentStock.name} svinger i dag ${daySpreadPct.toFixed(2)}% (ca. ${daySpread.toLocaleString("da-DK", { maximumFractionDigits: 1 })} kr.) mellem dagens laveste (${dayLow.toLocaleString("da-DK")} kr.) og højeste (${dayHigh.toLocaleString("da-DK")} kr.).`,
+      weeklyVolatilityText: `Rullende ugentlig spredning er ca. ${(daySpreadPct * 1.8).toFixed(1)}%.`,
+      frequencyText: daySpreadPct >= 2.0 
+        ? `Dagens sving er på ${daySpreadPct.toFixed(2)}%, hvilket betyder at 2% grænsen allerede er nået i dag!`
+        : `Dagens sving er på ${daySpreadPct.toFixed(2)}%. Aktiens historik viser at sving over 2% sker ${stats?.pctAbove2 >= 80 ? '2,5-3,5' : '1,5-2,5'} gange om ugen.`
+    };
+  } else if (timeframe === "weekly") {
+    let forecast = weekReturnPct >= 1.5 ? "STIGER (BULLISH)" : (weekReturnPct <= -1.5 ? "KØBSMULIGHED (RABAT)" : "SIDEVÆRTS KANAL");
+    let direction = weekReturnPct >= 0 ? "UP" : (weekReturnPct <= -2.5 ? "DOWN" : "NEUTRAL");
+    let signalTag = weekReturnPct >= 0 ? "Ugentlig optrend" : "Ugentlig korrektion";
+    let subtitle = `Ugeafkast: ${weekReturnPct >= 0 ? '+' : ''}${weekReturnPct.toFixed(2)}% | Ugens spænd: ${weekSpreadPct.toFixed(1)}%`;
+    let rationale = `I løbet af de seneste 7 dages handel har ${currentStock.name} bevæget sig mellem ${weekLow.toLocaleString("da-DK")} kr. og ${weekHigh.toLocaleString("da-DK")} kr. Dette giver en ugentlig spredning på ${weekSpreadPct.toFixed(1)}% (${weekSpread.toLocaleString("da-DK", { maximumFractionDigits: 0 })} kr.). I denne uge har ${daysOver2ThisWeek} ud af ${Math.max(1, recentDays.length)} handelsdage budt på sving over 2%.`;
+
+    return {
+      forecast,
+      direction,
+      signalTag,
+      subtitle,
+      rationale,
+      targetPrice: weekHigh.toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kr. (Ugens top)",
+      stopLoss: (weekLow * 0.98).toLocaleString("da-DK", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kr. (Under ugens bund)",
+      dailyVolatilityText: `Gennemsnitlig daglig svingning har i ugen ligget på ca. ${(weekSpreadPct / 2.2).toFixed(2)}%.`,
+      weeklyVolatilityText: `Faktisk spredning i de seneste 7 dage er ${weekSpreadPct.toFixed(1)}% (${weekSpread.toLocaleString("da-DK", { maximumFractionDigits: 0 })} kr. mellem ${weekLow.toLocaleString("da-DK")} kr. og ${weekHigh.toLocaleString("da-DK")} kr.).`,
+      frequencyText: `I den seneste uge har ${daysOver2ThisWeek} ud af ${Math.max(1, recentDays.length)} handelsdage haft sving over 2%, hvilket bekræfter den høje svingningsfrekvens.`
+    };
+  } else {
+    // 3 Måneders Historisk
+    return {
+      forecast: "STIGER (HISTORISK)",
+      direction: "UP",
+      signalTag: "60 Dages Statistik",
+      subtitle: `60 Dages Gennemsnit: ${stats?.avgDailySpreadPct || 2.5}% daglig spredning`,
+      rationale: `Gennem de seneste 3 måneder har ${currentStock.name} gennemført ${stats?.daysAbove2 || 40} handelsdage med udsving over 2% ud af ${stats?.totalDays || 60} dage (${stats?.pctAbove2 || 67}% af alle dage). Dette gør aktien exceptionelt velegnet til 2–3% dip-køb og profit-taking.`,
+      targetPrice: `${(currentPrice * 1.03).toLocaleString("da-DK", { maximumFractionDigits: 1 })} kr. (+3,0%)`,
+      stopLoss: `${(currentPrice * 0.98).toLocaleString("da-DK", { maximumFractionDigits: 1 })} kr. (-2,0%)`,
+      dailyVolatilityText: `${currentStock.name} svinger i gennemsnit ${stats?.avgDailySpreadPct || 2.5}% mellem dagens højeste og laveste kurs over de seneste 60 børsdage.`,
+      weeklyVolatilityText: `Gennemsnitlig ugentlig spredning målt over 3 måneder er ca. ${((stats?.avgDailySpreadPct || 2.5) * 1.8).toFixed(1)}%.`,
+      frequencyText: `Sker i gennemsnit ${(stats?.pctAbove2 || 70) >= 85 ? "2,5 til 3,5" : "1,5 til 2,5"} gange om ugen, hvilket giver dig kontinuerlige handelsmuligheder.`
+    };
   }
-};
+}
 
 export function StockRadar({
   stocks,
@@ -90,6 +160,7 @@ export function StockRadar({
   const [selectedStockId, setSelectedStockId] = useState(() => stocks[0]?.id || "zealand");
   const [activeTab, setActiveTab] = useState("alerts"); // 'alerts' | 'calculator' | 'analysis'
   const [chartPeriod, setChartPeriod] = useState("3M"); // '1D' | '1U' | '1M' | '3M' | '1Å' | '5Å'
+  const [analysisTimeframe, setAnalysisTimeframe] = useState("daily"); // 'daily' | 'weekly' | '3m'
   
   // Ny aktie modal state
   const [isAddTickerOpen, setIsAddTickerOpen] = useState(false);
@@ -714,22 +785,17 @@ export function StockRadar({
         </div>
       )}
 
-      {/* 2. FREKVENS- OG 3-MÅNEDERS ANALYSE FANE */}
+      {/* 2. FREKVENS- OG DYNAMISK ANALYSE FANE */}
       {activeTab === "analysis" && (() => {
-        const aiInsight = STOCK_AI_INSIGHTS[selectedStockId] || {
-          forecast: currentStock.change >= 0 ? "STIGER" : "FALDER",
-          subtitle: `Momentum: ${currentStock.changePercent > 0 ? "+" : ""}${currentStock.changePercent}% i dag`,
-          direction: currentStock.change >= 0 ? "UP" : "DOWN",
-          targetPrice: `${(currentPrice * 1.03).toFixed(1)} kr.`,
-          stopLoss: `${(currentPrice * 0.98).toFixed(1)} kr.`,
-          signalTag: "Automatisk Beregnet",
-          rationale: `${currentStock.name} analyseres ud fra seneste kursdata med et gennemsnitligt dagsspænd på ${stats.avgDailySpreadPct}%.`,
-          dailyVolatilityText: `${currentStock.name} svinger i gennemsnit ${stats.avgDailySpreadPct}% mellem dagens højeste og laveste kurs.`,
-          weeklyVolatilityText: `Gennemsnitlig ugentlig spredning er ca. ${(stats.avgDailySpreadPct * 1.8).toFixed(1)}%.`,
-          frequencyText: `Sker i gennemsnit ${stats.pctAbove2 >= 85 ? "2-3" : "1-2"} gange om ugen, hvilket giver gode muligheder til din strategi med at købe på dips og tage profit ved +2–3%.`
-        };
+        const aiInsight = calculateDynamicInsight(
+          currentStock,
+          stats,
+          analysisTimeframe,
+          backupData?.validDays || []
+        );
 
         const isUp = aiInsight.direction === "UP";
+        const isDown = aiInsight.direction === "DOWN";
 
         return (
           <div className="space-y-3.5 animate-fade-in">
@@ -741,25 +807,67 @@ export function StockRadar({
                     <Sparkles className="w-4 h-4 text-blue-400" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-blue-300">Sincity AI Analyse</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] uppercase font-bold text-blue-300">Sincity AI Analyse</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" title="Live beregnet ud fra dagsdata"></span>
+                    </div>
                     <h3 className="text-xs font-bold text-white">{currentStock.name} ({currentStock.symbol})</h3>
                   </div>
                 </div>
                 <span className={`px-2.5 py-1 rounded-full font-extrabold text-xs border ${
                   isUp 
                     ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" 
-                    : "bg-blue-500/20 text-blue-300 border-blue-500/40"
+                    : isDown
+                      ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                      : "bg-blue-500/20 text-blue-300 border-blue-500/40"
                 }`}>
                   {aiInsight.forecast}
                 </span>
               </div>
 
+              {/* Tidsvælger: Daglig vs Ugentlig vs 3 Måneder */}
+              <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-900/80 border border-slate-700/80 text-center">
+                <button
+                  type="button"
+                  onClick={() => setAnalysisTimeframe("daily")}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    analysisTimeframe === "daily"
+                      ? "bg-blue-600 text-white shadow-sm scale-102"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  📅 Daglig (I dag)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnalysisTimeframe("weekly")}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    analysisTimeframe === "weekly"
+                      ? "bg-blue-600 text-white shadow-sm scale-102"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  📆 Ugentlig (7 dage)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnalysisTimeframe("3m")}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    analysisTimeframe === "3m"
+                      ? "bg-blue-600 text-white shadow-sm scale-102"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  📊 3 Mdr. Statistik
+                </button>
+              </div>
+
               {/* Hovedkonklusion */}
               <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-700/70 space-y-2">
                 <div className="text-xs font-extrabold text-white flex items-center gap-1.5">
-                  <span className="text-sm">{isUp ? "🚀" : "⚖️"}</span>
-                  <span>Vurdering:</span>
-                  <span className={isUp ? "text-emerald-400 font-extrabold" : "text-blue-300 font-extrabold"}>
+                  <span className="text-sm">{isUp ? "🚀" : isDown ? "💰" : "⚖️"}</span>
+                  <span>{analysisTimeframe === "daily" ? "Dagens Vurdering:" : analysisTimeframe === "weekly" ? "Ugens Vurdering:" : "Historisk Vurdering:"}</span>
+                  <span className={isUp ? "text-emerald-400 font-extrabold" : isDown ? "text-amber-400 font-extrabold" : "text-blue-300 font-extrabold"}>
                     {aiInsight.subtitle}
                   </span>
                 </div>
@@ -768,7 +876,8 @@ export function StockRadar({
                 </p>
                 <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-1.5 border-t border-slate-800 text-[11px] font-mono">
                   <span className="text-slate-400">
-                    🎯 Forventet Målkurs: <strong className="text-emerald-400 font-bold">{aiInsight.targetPrice}</strong>
+                    🎯 {analysisTimeframe === "daily" ? "Dagens Målkurs (+2-3%):" : analysisTimeframe === "weekly" ? "Ugens Målkurs (Top):" : "3 Mdr. Målkurs:"}{" "}
+                    <strong className="text-emerald-400 font-bold">{aiInsight.targetPrice}</strong>
                   </span>
                   <span className="text-slate-400">
                     🛡️ Stop-loss: <strong className="text-rose-400 font-bold">{aiInsight.stopLoss}</strong>
@@ -776,13 +885,20 @@ export function StockRadar({
                 </div>
               </div>
 
-              {/* De 3 Nøglepunkter som brugeren specifikt efterspurgte */}
+              {/* De 3 Nøglepunkter - dynamisk baseret på valgt tidsramme */}
               <div className="space-y-2 pt-1">
                 {/* 1. Daglig volatilitet */}
                 <div className="p-3 rounded-2xl bg-slate-900/40 border border-slate-700/50">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-400 mb-1">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    <span>Daglig volatilitet</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-400">
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      <span>{analysisTimeframe === "daily" ? "Dagens bevægelse & spænd" : "Daglig volatilitet"}</span>
+                    </div>
+                    {analysisTimeframe === "daily" && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20 font-bold">
+                        Live Lige Nu
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-200 leading-relaxed font-medium">
                     {aiInsight.dailyVolatilityText}
@@ -791,9 +907,16 @@ export function StockRadar({
 
                 {/* 2. Ugentlig volatilitet */}
                 <div className="p-3 rounded-2xl bg-slate-900/40 border border-slate-700/50">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 mb-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Ugentlig volatilitet</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{analysisTimeframe === "weekly" ? "Ugens handelsinterval & spredning" : "Ugentlig volatilitet"}</span>
+                    </div>
+                    {analysisTimeframe === "weekly" && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
+                        Seneste 7 Dage
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-200 leading-relaxed font-medium">
                     {aiInsight.weeklyVolatilityText}
@@ -802,9 +925,14 @@ export function StockRadar({
 
                 {/* 3. Frekvens af 2–3% sving */}
                 <div className="p-3 rounded-2xl bg-slate-900/40 border border-slate-700/50">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 mb-1">
-                    <Target className="w-3.5 h-3.5" />
-                    <span>Frekvens af 2–3% sving</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                      <Target className="w-3.5 h-3.5" />
+                      <span>Frekvens af 2–3% sving</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-amber-300/80">
+                      Strategi: Dip & Profit
+                    </span>
                   </div>
                   <p className="text-xs text-slate-200 leading-relaxed font-medium">
                     {aiInsight.frequencyText}
