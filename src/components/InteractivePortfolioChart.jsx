@@ -81,8 +81,9 @@ export function InteractivePortfolioChart({
     { key: "1D", label: "1D" },
     { key: "1U", label: "1U" },
     { key: "1M", label: "1M" },
+    { key: "3M", label: "3M" },
     { key: "1Å", label: "1Å" },
-    { key: "MAX", label: "MAX" },
+    { key: "5Å", label: "5Å" },
   ];
 
   return (

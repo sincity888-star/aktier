@@ -597,17 +597,6 @@ export default function App() {
           }}
         />
 
-        {/* Aktiedetalje Modal */}
-        {selectedHoldingMetric && (
-          <HoldingDetailModal
-            holdingMetric={selectedHoldingMetric}
-            currency={currency}
-            onClose={() => setSelectedHoldingMetric(null)}
-            onOpenTradeModal={handleOpenTradeForStock}
-            onDeleteHolding={handleDeleteHolding}
-          />
-        )}
-
         {/* Indtast Min Beholdning Modal */}
         {isEditHoldingsOpen && (
           <EditHoldingsModal
@@ -619,13 +608,24 @@ export default function App() {
         )}
 
         {/* Tilføj Handel Modal */}
-        {isAddModalOpen && (
+        {!isEditHoldingsOpen && isAddModalOpen && (
           <AddTransactionModal
             stocks={stocks}
             preselectedStockId={tradeModalStockId}
             initialType={tradeModalType}
             onClose={() => setIsAddModalOpen(false)}
             onSubmitTransaction={handleAddTransaction}
+          />
+        )}
+
+        {/* Aktiedetalje Modal */}
+        {!isEditHoldingsOpen && !isAddModalOpen && selectedHoldingMetric && (
+          <HoldingDetailModal
+            holdingMetric={selectedHoldingMetric}
+            currency={currency}
+            onClose={() => setSelectedHoldingMetric(null)}
+            onOpenTradeModal={handleOpenTradeForStock}
+            onDeleteHolding={handleDeleteHolding}
           />
         )}
       </main>

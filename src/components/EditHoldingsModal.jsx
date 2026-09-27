@@ -56,13 +56,21 @@ export function EditHoldingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+    <div 
+      className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/90 backdrop-blur-md animate-fade-in"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.88)" }}
+      onClick={onClose}
+    >
       <div 
-        className="w-full max-w-lg bg-[var(--bg-app)] border border-slate-700/80 rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-slide-up"
+        className="w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-slide-up border border-slate-700/80"
+        style={{ backgroundColor: "var(--bg-card)", opacity: 1 }}
         onClick={e => e.stopPropagation()}
       >
         {/* Top bar med stor tydelig Tilbage-knap */}
-        <div className="px-4 pt-3.5 pb-3 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-card)]">
+        <div 
+          className="px-4 pt-3.5 pb-3 flex items-center justify-between border-b border-[var(--border-subtle)]"
+          style={{ backgroundColor: "var(--bg-card)" }}
+        >
           <button
             type="button"
             onClick={onClose}
@@ -87,7 +95,11 @@ export function EditHoldingsModal({
         </div>
 
         {/* Indhold */}
-        <form onSubmit={handleSave} className="p-4 space-y-3.5 overflow-y-auto">
+        <form 
+          onSubmit={handleSave} 
+          className="p-4 space-y-3.5 overflow-y-auto"
+          style={{ backgroundColor: "var(--bg-card)" }}
+        >
           <div className="text-xs text-slate-200 bg-blue-950/40 p-3 rounded-2xl border border-blue-500/30 leading-relaxed">
             ✏️ Indtast dit <strong>antal aktier</strong> og din <strong>købspris (GAK)</strong> nedenfor. Tallene gemmes straks på din profil.
           </div>

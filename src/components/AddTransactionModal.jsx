@@ -52,13 +52,21 @@ export function AddTransactionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+    <div 
+      className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/90 backdrop-blur-md animate-fade-in"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.88)" }}
+      onClick={onClose}
+    >
       <div 
-        className="w-full max-w-md bg-[var(--bg-app)] border border-[var(--border-subtle)] rounded-t-3xl sm:rounded-3xl flex flex-col overflow-hidden shadow-2xl animate-slide-up"
+        className="w-full max-w-md border border-[var(--border-subtle)] rounded-t-3xl sm:rounded-3xl flex flex-col overflow-hidden shadow-2xl animate-slide-up"
+        style={{ backgroundColor: "var(--bg-card)", opacity: 1 }}
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Top */}
-        <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-card)]">
+        <div 
+          className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-[var(--border-subtle)]"
+          style={{ backgroundColor: "var(--bg-card)" }}
+        >
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
               <ArrowRightLeft className="w-4 h-4" />
