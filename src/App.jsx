@@ -11,6 +11,7 @@ import { TransactionsView } from "./components/TransactionsView";
 import { StockRadar } from "./components/StockRadar";
 import { AlertBanner } from "./components/AlertBanner";
 import { BottomNav } from "./components/BottomNav";
+import { LoginScreen } from "./components/LoginScreen";
 import {
   INITIAL_STOCKS,
   INITIAL_HOLDINGS,
@@ -18,12 +19,15 @@ import {
   USD_TO_DKK
 } from "./data/mockData";
 import { getPortfolioSummary, getDanishMarketStatus } from "./utils/calculations";
+import { fetchLiveStockData } from "./utils/stockApi";
 import { playAlertChime, sendBrowserNotification } from "./utils/audioAlert";
 import { sendStockAlertEmail } from "./utils/emailAlert";
 import { savePortfolioToCloud, subscribeToCloudPortfolio } from "./utils/firebase";
 import { History, Plus, Target, BellRing, ArrowRight, ArrowLeft, Edit, Cloud, ShieldCheck } from "lucide-react";
 
 export default function App() {
+  const [user, setUser] = useState(null);
+
   // Gemte data (v2 version for at rydde gamle demoaktier)
   const [stocks, setStocks] = useState(() => {
     const saved = localStorage.getItem("nordic_stocks_v2");
@@ -203,6 +207,37 @@ export default function App() {
       });
     }
   }, [marketStatus.isOpen, isLiveUpdating]);
+
+  // Synkroniser kurser med Live Data fra Yahoo Finance (Fase 1)
+  useEffect(() => {
+    if (!user) return;
+    // Hvis børsen er åben, henter vi friske kurser ved login
+    if (marketStatus.isOpen || isLiveUpdating) {
+      let isMounted = true;
+      async function syncLivePrices() {
+        try {
+          const updatedStocks = await Promise.all(
+            stocks.map(async (stock) => {
+              try {
+                // Her kalder vi vores stockApi!
+                const liveData = await fetchLiveStockData(stock.symbol);
+                return { ...stock, ...liveData };
+              } catch (err) {
+                return stock; // Fallback hvis fejl
+              }
+            })
+          );
+          if (isMounted) {
+            setStocks(updatedStocks);
+          }
+        } catch (e) {
+          console.error("Live sync fejlede", e);
+        }
+      }
+      syncLivePrices();
+      return () => { isMounted = false; };
+    }
+  }, [user]); // Kør kun når brugeren logger ind
 
   // Overvåg kurser for ALLE aktier med aktiv alarm (Zealand, Mærsk, Ambu)
   useEffect(() => {
@@ -411,6 +446,10 @@ export default function App() {
     setTradeModalType(type);
     setIsAddModalOpen(true);
   };
+
+  if (!user) {
+    return <LoginScreen onLogin={(userData) => setUser(userData)} />;
+  }
 
   return (
     <div className={`app-container-wrapper ${isPhoneMode ? "phone-mode" : "full-width"}`}>
