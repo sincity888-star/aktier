@@ -27,7 +27,21 @@ export default function App() {
   // Gemte data (v2 version for at rydde gamle demoaktier)
   const [stocks, setStocks] = useState(() => {
     const saved = localStorage.getItem("nordic_stocks_v2");
-    return saved ? JSON.parse(saved) : INITIAL_STOCKS;
+    if (!saved) return INITIAL_STOCKS;
+    try {
+      const parsed = JSON.parse(saved);
+      const market = getDanishMarketStatus();
+      if (!market.isOpen) {
+        // Gendan officielle lukkekurser for standardaktierne, men behold eventuelle bruger-aktier
+        return INITIAL_STOCKS.map(init => {
+          const existing = parsed.find(p => p.id === init.id);
+          return existing ? { ...existing, ...init } : init;
+        });
+      }
+      return parsed;
+    } catch {
+      return INITIAL_STOCKS;
+    }
   });
 
   const [holdings, setHoldings] = useState(() => {
@@ -166,6 +180,29 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, [isLiveUpdating]);
+
+  // Fastfrys til officielle lukkekurser uden for åbningstid hvis simulering ikke er aktiv
+  useEffect(() => {
+    if (!marketStatus.isOpen && !isLiveUpdating) {
+      setStocks(prev => {
+        return prev.map(stock => {
+          const official = INITIAL_STOCKS.find(s => s.id === stock.id);
+          if (!official) return stock;
+          return {
+            ...stock,
+            currentPrice: official.currentPrice,
+            previousClose: official.previousClose,
+            change: official.change,
+            changePercent: official.changePercent,
+            dayHigh: official.dayHigh,
+            dayLow: official.dayLow,
+            sparkline: official.sparkline,
+            history: official.history || stock.history
+          };
+        });
+      });
+    }
+  }, [marketStatus.isOpen, isLiveUpdating]);
 
   // Overvåg kurser for ALLE aktier med aktiv alarm (Zealand, Mærsk, Ambu)
   useEffect(() => {
