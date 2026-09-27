@@ -482,3 +482,196 @@ input::placeholder {
     overflow: hidden;
   }
 }
+
+/* ========================================================
+   LYST TEMA (LIGHT MODE)
+   ======================================================== */
+.light-theme {
+  --bg-app: #f4f6fa;
+  --bg-card: #ffffff;
+  --bg-card-elevated: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-input: #ffffff;
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-subtle-bright: rgba(15, 23, 42, 0.15);
+  --border-focus: rgba(37, 99, 235, 0.6);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  
+  --color-profit: #059669;
+  --color-profit-bg: rgba(16, 185, 129, 0.12);
+  --color-profit-border: rgba(16, 185, 129, 0.35);
+
+  --color-loss: #e11d48;
+  --color-loss-bg: rgba(225, 29, 72, 0.12);
+  --color-loss-border: rgba(225, 29, 72, 0.35);
+
+  --color-brand: #2563eb;
+  color-scheme: light;
+}
+
+.light-theme html,
+.light-theme body {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.light-theme .app-container-wrapper {
+  background: radial-gradient(circle at 50% 15%, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+.light-theme .app-screen {
+  background-color: #f4f6fa;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+}
+
+@media (min-width: 640px) {
+  .light-theme .app-container-wrapper.phone-mode .app-screen {
+    border-color: #cbd5e1;
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.06);
+  }
+}
+
+.light-theme header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: #e2e8f0;
+}
+
+.light-theme .glass-nav {
+  background: rgba(255, 255, 255, 0.95);
+  border-top-color: #e2e8f0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Tekst i lyst tema */
+.light-theme .text-white {
+  color: #0f172a;
+}
+
+.light-theme button.bg-blue-600,
+.light-theme button.bg-blue-600 *,
+.light-theme button.bg-emerald-600,
+.light-theme button.bg-emerald-600 *,
+.light-theme button.bg-rose-600,
+.light-theme button.bg-rose-600 *,
+.light-theme .bg-blue-600,
+.light-theme .bg-blue-600 * {
+  color: #ffffff !important;
+}
+
+.light-theme .text-slate-200,
+.light-theme .text-slate-300 {
+  color: #1e293b;
+}
+
+.light-theme .text-slate-400 {
+  color: #475569;
+}
+
+.light-theme .text-slate-500 {
+  color: #64748b;
+}
+
+/* Kort og paneler */
+.light-theme .bg-slate-800 {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .hover\:bg-slate-700:hover {
+  background-color: #f1f5f9;
+}
+
+.light-theme .bg-slate-900,
+.light-theme .bg-slate-900\/60 {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.light-theme .border-slate-700,
+.light-theme .border-slate-700\/80,
+.light-theme .border-slate-700\/60 {
+  border-color: #e2e8f0;
+}
+
+.light-theme .border-slate-600 {
+  border-color: #cbd5e1;
+}
+
+/* Gradients og farvebokse */
+.light-theme .bg-gradient-to-r.from-blue-950\/70,
+.light-theme .from-blue-950\/70 {
+  background-image: linear-gradient(to right, #eff6ff, #ffffff, #f1f5f9);
+  border-color: #bfdbfe;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);
+}
+
+.light-theme .from-blue-950\/40,
+.light-theme .bg-blue-950\/25,
+.light-theme .bg-blue-950\/30,
+.light-theme .bg-blue-950\/40 {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.light-theme .text-blue-300 {
+  color: #1d4ed8;
+}
+
+.light-theme .bg-emerald-950\/25,
+.light-theme .bg-emerald-950\/30 {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.light-theme .text-emerald-300 {
+  color: #047857;
+}
+
+.light-theme .bg-rose-950\/20,
+.light-theme .bg-rose-950\/25 {
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.light-theme .text-rose-300 {
+  color: #be123c;
+}
+
+.light-theme .from-amber-950\/30,
+.light-theme .bg-amber-950\/30 {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+/* Modaler */
+.light-theme .fixed.inset-0.bg-black\/85,
+.light-theme .fixed.inset-0.bg-black\/80,
+.light-theme .fixed.inset-0.bg-black\/75 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+/* Inputs */
+.light-theme input,
+.light-theme select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-theme input:focus,
+.light-theme select:focus {
+  border-color: #2563eb !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+.light-theme input::placeholder {
+  color: #94a3b8;
+}

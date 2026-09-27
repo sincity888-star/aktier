@@ -1,11 +1,13 @@
 import React from "react";
-import { TrendingUp, RefreshCw, Smartphone, Monitor, Plus, ArrowLeft } from "lucide-react";
+import { TrendingUp, RefreshCw, Smartphone, Monitor, Plus, ArrowLeft, Sun, Moon } from "lucide-react";
 
 export function Header({
   activeTab,
   onGoBack,
   currency,
   onToggleCurrency,
+  theme,
+  onToggleTheme,
   isPhoneMode,
   onTogglePhoneMode,
   onOpenAddModal,
@@ -61,12 +63,25 @@ export function Header({
         {/* Valuta vælger */}
         <button
           onClick={onToggleCurrency}
-          className="flex items-center px-2.5 py-1 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs font-semibold hover:border-slate-600 transition-all active:scale-95"
+          className="flex items-center px-2 py-1 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-xs font-semibold hover:border-slate-600 transition-all active:scale-95"
           title="Skift mellem DKK og USD"
         >
-          <span className={currency === "DKK" ? "text-blue-400" : "text-[var(--text-muted)]"}>DKK</span>
-          <span className="mx-1 text-[var(--text-faint)]">/</span>
-          <span className={currency === "USD" ? "text-emerald-400" : "text-[var(--text-muted)]"}>USD</span>
+          <span className={currency === "DKK" ? "text-blue-400 font-bold" : "text-[var(--text-muted)]"}>DKK</span>
+          <span className="mx-0.5 text-[var(--text-faint)]">/</span>
+          <span className={currency === "USD" ? "text-emerald-400 font-bold" : "text-[var(--text-muted)]"}>USD</span>
+        </button>
+
+        {/* Lyst / Mørkt tema skifter */}
+        <button
+          onClick={onToggleTheme}
+          className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white items-center justify-center transition-all flex active:scale-90 shadow-sm"
+          title={theme === "light" ? "Skift til mørkt tema" : "Skift til lyst tema"}
+        >
+          {theme === "light" ? (
+            <Moon className="w-4 h-4 text-blue-600" />
+          ) : (
+            <Sun className="w-4 h-4 text-amber-400" />
+          )}
         </button>
 
         {/* Hurtig Tilføj knap i top på desktop */}

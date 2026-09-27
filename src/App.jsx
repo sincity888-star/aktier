@@ -47,10 +47,24 @@ export default function App() {
 
   // UI tilstande
   const [currency, setCurrency] = useState("DKK");
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("sincity_theme");
+    return saved || "light"; // Standard: Lyst og venligt tema
+  });
   const [activeTab, setActiveTab] = useState("dashboard"); // 'dashboard' | 'radar' | 'holdings' | 'market' | 'dividends' | 'history'
   const [isPhoneMode, setIsPhoneMode] = useState(true);
   const [isLiveUpdating, setIsLiveUpdating] = useState(true);
   const [isCloudSynced, setIsCloudSynced] = useState(false);
+
+  // Anvend tema-klasse på dokumentet
+  useEffect(() => {
+    localStorage.setItem("sincity_theme", theme);
+    if (theme === "light") {
+      document.documentElement.classList.add("light-theme");
+    } else {
+      document.documentElement.classList.remove("light-theme");
+    }
+  }, [theme]);
 
   // Modaler
   const [selectedHoldingMetric, setSelectedHoldingMetric] = useState(null);
@@ -329,6 +343,8 @@ export default function App() {
           onGoBack={() => setActiveTab("dashboard")}
           currency={currency}
           onToggleCurrency={() => setCurrency(c => c === "DKK" ? "USD" : "DKK")}
+          theme={theme}
+          onToggleTheme={() => setTheme(t => t === "light" ? "dark" : "light")}
           isPhoneMode={isPhoneMode}
           onTogglePhoneMode={() => setIsPhoneMode(m => !m)}
           onOpenAddModal={() => {
