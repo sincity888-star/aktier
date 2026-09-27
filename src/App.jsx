@@ -381,6 +381,7 @@ export default function App() {
         <Header
           activeTab={activeTab}
           onGoBack={() => setActiveTab("dashboard")}
+          onSelectTab={setActiveTab}
           currency={currency}
           onToggleCurrency={() => setCurrency(c => c === "DKK" ? "USD" : "DKK")}
           theme={theme}
@@ -412,7 +413,7 @@ export default function App() {
         )}
 
         {/* Hovedindhold baseret på valgt fane */}
-        <div className="flex-1 pb-6 overflow-y-auto">
+        <div className="flex-1 pb-28 sm:pb-8 overflow-y-auto">
           {activeTab === "dashboard" && (
             <div className="animate-fade-in">
               <PortfolioSummary summary={portfolioSummary} currency={currency} />

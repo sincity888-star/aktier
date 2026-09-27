@@ -542,9 +542,49 @@ input::placeholder {
 }
 
 .light-theme .glass-nav {
-  background: rgba(255, 255, 255, 0.95);
-  border-top-color: #e2e8f0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-top-color: #cbd5e1 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.bottom-nav-bar {
+  background-color: #0c121e !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.light-theme .bottom-nav-bar {
+  background-color: #ffffff !important;
+  border-top: 1px solid #cbd5e1 !important;
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.bottom-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 50px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  touch-action: manipulation;
+  color: #94a3b8;
+  transition: all 0.15s ease;
+}
+
+.light-theme .bottom-nav-btn {
+  color: #475569 !important;
+}
+
+.bottom-nav-btn.active {
+  color: #38bdf8 !important;
+  font-weight: 800;
+}
+
+.light-theme .bottom-nav-btn.active {
+  color: #2563eb !important;
+  font-weight: 800;
 }
 
 /* Tekst i lyst tema */
