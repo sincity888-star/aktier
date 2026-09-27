@@ -23,11 +23,15 @@ import {
   Stethoscope,
   Search,
   CheckCircle2,
-  ArrowLeft
+  ArrowLeft,
+  Mail,
+  Send,
+  AtSign
 } from "lucide-react";
 import { formatCurrency, formatPercent } from "../utils/calculations";
 import { playAlertChime, requestNotificationPermission } from "../utils/audioAlert";
 import { fetchLiveStockData, calculateVolatilityStats } from "../utils/stockApi";
+import { sendStockAlertEmail } from "../utils/emailAlert";
 import analyzedStocksBackup from "../data/analyzedStocks.json";
 
 const STOCK_AI_INSIGHTS = {
@@ -103,6 +107,62 @@ export function StockRadar({
   const [calcShares, setCalcShares] = useState(currentStock?.id === "maersk" ? 2 : currentStock?.id === "zealand" ? 50 : 100);
   const [targetPct, setTargetPct] = useState(3.0);
   const [stopLossPct, setStopLossPct] = useState(2.0);
+
+  // E-mail notifikationer state
+  const [userEmail, setUserEmail] = useState(() => localStorage.getItem("sincity_alert_email") || "sincity888@gmail.com");
+  const [isEmailAlertEnabled, setIsEmailAlertEnabled] = useState(() => localStorage.getItem("sincity_email_alerts_enabled") !== "false");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [testEmailStatus, setTestEmailStatus] = useState(null);
+  const [sentEmailLogs, setSentEmailLogs] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("sincity_sent_emails") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const handleUpdateEmail = (val) => {
+    setUserEmail(val);
+    localStorage.setItem("sincity_alert_email", val);
+  };
+
+  const handleToggleEmailAlert = (val) => {
+    setIsEmailAlertEnabled(val);
+    localStorage.setItem("sincity_email_alerts_enabled", val ? "true" : "false");
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!userEmail) return;
+    setIsSendingEmail(true);
+    setTestEmailStatus(null);
+    try {
+      const res = await sendStockAlertEmail({
+        toEmail: userEmail,
+        stockName: currentStock.name,
+        symbol: currentStock.symbol,
+        type: "BUY_SIGNAL",
+        currentPrice,
+        diffPct: -currentAlert.dropPctThreshold,
+        referencePrice: refPrice,
+        targetPrice: Math.round(refPrice * (1 + currentAlert.risePctThreshold / 100))
+      });
+      setTestEmailStatus({
+        type: "success",
+        message: `✓ Test-email sendt til ${userEmail}! (${currentStock.symbol} dip-købsalarm)`
+      });
+      try {
+        const logs = JSON.parse(localStorage.getItem("sincity_sent_emails") || "[]");
+        setSentEmailLogs(logs);
+      } catch {}
+    } catch (err) {
+      setTestEmailStatus({
+        type: "error",
+        message: `Fejl ved afsendelse: ${err.message}`
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
 
   // Hent aktiv alarm for valgt aktie
   const currentAlert = alertConfigs[selectedStockId] || {
@@ -934,6 +994,104 @@ export function StockRadar({
               <span className="w-16 text-right font-mono font-extrabold text-base text-emerald-400">
                 +{currentAlert.risePctThreshold.toFixed(1)}%
               </span>
+            </div>
+          </div>
+
+          {/* E-MAIL NOTIFIKATIONER SEKTION */}
+          <div className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[var(--text-main)] flex items-center gap-1.5">
+                    <span>E-mail Notifikationer ved Alarmer</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      PRO
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    Få besked direkte i din indbakke, når {currentStock.name} rammer dit købs- eller salgsmål
+                  </p>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isEmailAlertEnabled}
+                  onChange={(e) => handleToggleEmailAlert(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
+
+            {/* E-mail adresse input */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
+                <AtSign className="w-3 h-3 text-amber-400" />
+                <span>Modtager e-mailadresse:</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => handleUpdateEmail(e.target.value)}
+                  placeholder="f.eks. sincity888@gmail.com"
+                  className="flex-1 bg-slate-900/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendTestEmail}
+                  disabled={isSendingEmail || !userEmail}
+                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {isSendingEmail ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Sender...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Test Mail</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Test Email Status Message */}
+            {testEmailStatus && (
+              <div
+                className={`p-2.5 rounded-xl text-xs flex items-center gap-2 animate-fade-in ${
+                  testEmailStatus.type === "success"
+                    ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30"
+                    : "bg-rose-500/10 text-rose-300 border border-rose-500/30"
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span>{testEmailStatus.message}</span>
+              </div>
+            )}
+
+            {/* Hjælpeboks & Seneste afsendte mails */}
+            <div className="pt-1 text-[11px] text-slate-400 space-y-1.5">
+              <p>
+                ✓ E-mailen indeholder aktuel børskurs, beregnet gevinstmål (+2-3%) og direkte link til Sincity Aktie Radar.
+              </p>
+              {sentEmailLogs.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-slate-800/80">
+                  <div className="text-[10px] text-slate-400 font-mono flex items-center justify-between mb-1">
+                    <span>Seneste afsendte alarm ({sentEmailLogs.length}):</span>
+                    <span>{new Date(sentEmailLogs[0].date).toLocaleTimeString("da-DK", { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-300 truncate font-mono bg-slate-950/40 px-2 py-1 rounded border border-slate-800">
+                    {sentEmailLogs[0].subject}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

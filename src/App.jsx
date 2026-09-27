@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Header } from "./components/Header";
 import { PortfolioSummary } from "./components/PortfolioSummary";
 import { AssetAllocation } from "./components/AssetAllocation";
@@ -20,6 +20,7 @@ import {
 } from "./data/mockData";
 import { getPortfolioSummary } from "./utils/calculations";
 import { playAlertChime, sendBrowserNotification } from "./utils/audioAlert";
+import { sendStockAlertEmail } from "./utils/emailAlert";
 import { savePortfolioToCloud, subscribeToCloudPortfolio } from "./utils/firebase";
 import { History, Plus, Target, BellRing, ArrowRight, ArrowLeft, Edit, Cloud, ShieldCheck } from "lucide-react";
 
@@ -87,6 +88,7 @@ export default function App() {
   });
 
   const [activeAlert, setActiveAlert] = useState(null);
+  const lastEmailSentRef = useRef({});
 
   // Synkroniser til LocalStorage & Firebase Cloud
   useEffect(() => {
@@ -185,6 +187,25 @@ export default function App() {
         setActiveAlert(alertObj);
         if (config.soundEnabled) playAlertChime("buy");
         sendBrowserNotification(`Købssignal: ${stock.symbol}`, alertObj.message);
+
+        // Send e-mail notifikation hvis slået til (maks 1 mail pr. 10 min pr. aktie)
+        const emailAlertsEnabled = localStorage.getItem("sincity_email_alerts_enabled") !== "false";
+        const userEmail = localStorage.getItem("sincity_alert_email") || "sincity888@gmail.com";
+        const emailKey = `${stock.id}_buy`;
+        const lastSent = lastEmailSentRef.current[emailKey] || 0;
+        if (emailAlertsEnabled && userEmail && (Date.now() - lastSent > 10 * 60 * 1000)) {
+          lastEmailSentRef.current[emailKey] = Date.now();
+          sendStockAlertEmail({
+            toEmail: userEmail,
+            stockName: stock.name,
+            symbol: stock.symbol,
+            type: "BUY_SIGNAL",
+            currentPrice: current,
+            diffPct,
+            referencePrice: ref,
+            targetPrice: Math.round(ref * (1 + config.risePctThreshold / 100))
+          });
+        }
         break;
       } else if (diffPct >= config.risePctThreshold) {
         const alertObj = {
@@ -197,6 +218,25 @@ export default function App() {
         setActiveAlert(alertObj);
         if (config.soundEnabled) playAlertChime("sell");
         sendBrowserNotification(`Profit-mål nået: ${stock.symbol}`, alertObj.message);
+
+        // Send e-mail notifikation hvis slået til (maks 1 mail pr. 10 min pr. aktie)
+        const emailAlertsEnabled = localStorage.getItem("sincity_email_alerts_enabled") !== "false";
+        const userEmail = localStorage.getItem("sincity_alert_email") || "sincity888@gmail.com";
+        const emailKey = `${stock.id}_sell`;
+        const lastSent = lastEmailSentRef.current[emailKey] || 0;
+        if (emailAlertsEnabled && userEmail && (Date.now() - lastSent > 10 * 60 * 1000)) {
+          lastEmailSentRef.current[emailKey] = Date.now();
+          sendStockAlertEmail({
+            toEmail: userEmail,
+            stockName: stock.name,
+            symbol: stock.symbol,
+            type: "SELL_SIGNAL",
+            currentPrice: current,
+            diffPct,
+            referencePrice: ref,
+            targetPrice: Math.round(ref * (1 + config.risePctThreshold / 100))
+          });
+        }
         break;
       }
     }
