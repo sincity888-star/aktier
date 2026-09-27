@@ -17,7 +17,7 @@ import {
   INITIAL_TRANSACTIONS,
   USD_TO_DKK
 } from "./data/mockData";
-import { getPortfolioSummary } from "./utils/calculations";
+import { getPortfolioSummary, getDanishMarketStatus } from "./utils/calculations";
 import { playAlertChime, sendBrowserNotification } from "./utils/audioAlert";
 import { sendStockAlertEmail } from "./utils/emailAlert";
 import { savePortfolioToCloud, subscribeToCloudPortfolio } from "./utils/firebase";
@@ -53,7 +53,9 @@ export default function App() {
   });
   const [activeTab, setActiveTab] = useState("dashboard"); // 'dashboard' | 'radar' | 'holdings' | 'market' | 'dividends' | 'history'
   const [isPhoneMode, setIsPhoneMode] = useState(true);
-  const [isLiveUpdating, setIsLiveUpdating] = useState(true);
+  const marketStatus = getDanishMarketStatus();
+  // Standard: Hvis børsen er lukket (f.eks. søndag/weekend), er kurserne frosset som standard!
+  const [isLiveUpdating, setIsLiveUpdating] = useState(false);
   const [isCloudSynced, setIsCloudSynced] = useState(false);
 
   // Anvend tema-klasse på dokumentet
@@ -393,6 +395,7 @@ export default function App() {
             setIsAddModalOpen(true);
           }}
           onResetData={handleResetData}
+          marketStatus={marketStatus}
           isLiveUpdating={isLiveUpdating}
           onToggleLive={() => setIsLiveUpdating(v => !v)}
         />

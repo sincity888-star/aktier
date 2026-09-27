@@ -13,6 +13,7 @@ export function Header({
   onTogglePhoneMode,
   onOpenAddModal,
   onResetData,
+  marketStatus,
   isLiveUpdating,
   onToggleLive
 }) {
@@ -55,17 +56,28 @@ export function Header({
               </span>
               <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">PRO</span>
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+            <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
               <span 
-                className={`w-1.5 h-1.5 rounded-full ${isLiveUpdating ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} 
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  isLiveUpdating 
+                    ? "bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" 
+                    : (marketStatus?.isOpen ? "bg-emerald-500" : "bg-rose-500")
+                }`} 
               />
               <button 
                 type="button"
                 onClick={onToggleLive}
-                title="Slå live kurs-simulering til/fra"
-                className="hover:text-[var(--text-secondary)] transition-colors flex items-center gap-1 cursor-pointer"
+                title="Klik for at slå test-simulering til eller fra"
+                className="hover:text-[var(--text-secondary)] transition-colors flex items-center gap-1 cursor-pointer font-medium"
               >
-                <span>{isLiveUpdating ? "Live kurser aktiv" : "Kurser frosset"}</span>
+                <span>
+                  {isLiveUpdating 
+                    ? "🧪 Test-simulering aktiv" 
+                    : (marketStatus?.message || "Børs lukket (Kurser frosset)")}
+                </span>
+                <span className="text-[9px] text-blue-400 underline ml-0.5">
+                  {isLiveUpdating ? "(stop)" : "(test)"}
+                </span>
               </button>
             </div>
           </div>

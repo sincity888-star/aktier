@@ -118,3 +118,37 @@ export function getPortfolioSummary(holdings, stocks, displayCurrency = "DKK", u
     holdingMetrics
   };
 }
+
+// Børsens officielle åbningstider (Nasdaq Copenhagen: Hverdage 09:00 - 17:00 dansk tid)
+export function getDanishMarketStatus() {
+  const now = new Date();
+  const cphString = now.toLocaleString("en-US", { timeZone: "Europe/Copenhagen" });
+  const cphDate = new Date(cphString);
+  const day = cphDate.getDay(); // 0 er søndag, 6 er lørdag
+  const hour = cphDate.getHours();
+  const minute = cphDate.getMinutes();
+  const currentMinutes = hour * 60 + minute;
+  const openMinutes = 9 * 60; // 09:00
+  const closeMinutes = 17 * 60; // 17:00
+
+  const isWeekend = day === 0 || day === 6;
+  const isDuringHours = currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+  const isOpen = !isWeekend && isDuringHours;
+
+  let message = "";
+  if (isWeekend) {
+    message = day === 0 ? "Børs lukket (Åbner mandag kl. 09:00)" : "Børs lukket (Weekend)";
+  } else if (currentMinutes < openMinutes) {
+    message = "Børs lukket (Åbner kl. 09:00)";
+  } else if (currentMinutes >= closeMinutes) {
+    message = "Børs lukket (Lukket kl. 17:00)";
+  } else {
+    message = "Børs åben (09:00 - 17:00)";
+  }
+
+  return {
+    isOpen,
+    isWeekend,
+    message
+  };
+}
