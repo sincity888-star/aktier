@@ -3,11 +3,9 @@ import { LayoutDashboard, Target, Plus, Search, DollarSign } from "lucide-react"
 
 export function BottomNav({ activeTab, onSelectTab, onOpenAddModal }) {
   const tabs = [
-    { id: "dashboard", label: "Overblik", icon: LayoutDashboard },
     { id: "radar", label: "Radar", icon: Target, badge: "2-3%" },
-    { id: "add", label: "Handel", isAction: true },
-    { id: "market", label: "Marked", icon: Search },
-    { id: "dividends", label: "Udbytte", icon: DollarSign },
+    { id: "dashboard", label: "Portefølje", icon: LayoutDashboard },
+    { id: "add", label: "Handel", isAction: true }
   ];
 
   return (

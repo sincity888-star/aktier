@@ -79,7 +79,7 @@ export default function App() {
     const saved = localStorage.getItem("sincity_theme");
     return saved || "light"; // Standard: Lyst og venligt tema
   });
-  const [activeTab, setActiveTab] = useState("dashboard"); // 'dashboard' | 'radar' | 'holdings' | 'market' | 'dividends' | 'history'
+  const [activeTab, setActiveTab] = useState("radar"); // 'dashboard' | 'radar' | 'holdings' | 'market' | 'dividends' | 'history'
   const [isPhoneMode, setIsPhoneMode] = useState(true);
   const marketStatus = getDanishMarketStatus();
   // Standard: Hvis børsen er lukket (f.eks. søndag/weekend), er kurserne frosset som standard!
