@@ -559,31 +559,18 @@ export function StockRadar({
           </span>
         </div>
 
-        {/* Børskurs & Reference */}
-        <div className="flex items-baseline justify-between mt-3 pt-2 border-t border-[var(--border-subtle)]">
-          <div>
-            <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)] font-medium">
-              <span>Børskurs</span>
-              <button
-                onClick={() => {
-                  setEditPriceInput(currentPrice);
-                  setIsEditingPrice(e => !e);
-                }}
-                className="text-blue-400 hover:text-white"
-                title="Tilpas kurs manuelt"
-              >
-                <Edit3 className="w-3 h-3" />
-              </button>
-            </div>
-
+        {/* Børskurs & Reference - Plus500 Style UI */}
+        <div className="flex flex-col gap-3 mt-4">
+          <div className="flex justify-between items-center text-[11px] text-[var(--text-muted)] font-medium">
+            <span>Markedspriser (Live)</span>
             {isEditingPrice ? (
-              <div className="flex items-center gap-1 mt-1">
+              <div className="flex items-center gap-1">
                 <input
                   type="number"
                   step="0.1"
                   value={editPriceInput}
                   onChange={(e) => setEditPriceInput(e.target.value)}
-                  className="w-28 px-2 py-1 rounded-lg bg-[var(--bg-input)] border border-blue-500 text-sm font-mono font-bold text-white"
+                  className="w-24 px-2 py-1 rounded-md bg-[var(--bg-input)] border border-blue-500 text-xs font-mono font-bold text-white"
                 />
                 <button
                   type="button"
@@ -595,22 +582,44 @@ export function StockRadar({
                       setIsEditingPrice(false);
                     }
                   }}
-                  className="px-2 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold"
-                >
-                  Gem
-                </button>
+                  className="px-2 py-1 rounded-md bg-blue-600 text-white text-xs font-bold"
+                >Gem</button>
               </div>
             ) : (
-              <div className="text-2xl font-extrabold text-white font-mono tabular-nums">
-                {currentPrice.toLocaleString("da-DK", { minimumFractionDigits: 2 })} kr.
-              </div>
+              <button onClick={() => { setEditPriceInput(currentPrice); setIsEditingPrice(e => !e); }} className="text-blue-400 hover:text-white flex items-center gap-1" title="Tilpas kurs manuelt"><Edit3 className="w-3 h-3" /> <span className="text-[9px]">Ret</span></button>
             )}
           </div>
 
-          <div className="text-right">
+          <div className="grid grid-cols-2 gap-3">
+            {/* SÆLG KNAP (Bid) */}
+            <button 
+              onClick={() => onOpenTradeModal && onOpenTradeModal(selectedStockId, "SELL")}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-rose-500/50 hover:bg-rose-500/10 active:scale-95 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500/70"></div>
+              <span className="text-[10px] font-bold text-rose-500 mb-0.5 tracking-wider">SÆLG</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-[var(--text-main)] font-mono tabular-nums">
+                {(currentPrice * 0.9995).toLocaleString("da-DK", { minimumFractionDigits: 2 })}
+              </span>
+            </button>
+
+            {/* KØB KNAP (Ask) */}
+            <button 
+              onClick={() => onOpenTradeModal && onOpenTradeModal(selectedStockId, "BUY")}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500/70"></div>
+              <span className="text-[10px] font-bold text-emerald-500 mb-0.5 tracking-wider">KØB</span>
+              <span className="text-xl sm:text-2xl font-extrabold text-[var(--text-main)] font-mono tabular-nums">
+                {(currentPrice * 1.0005).toLocaleString("da-DK", { minimumFractionDigits: 2 })}
+              </span>
+            </button>
+          </div>
+
+          <div className="flex justify-between items-center pt-2 mt-1 border-t border-[var(--border-subtle)]">
             <div className="text-[11px] text-[var(--text-muted)] font-medium">Fra reference ({refPrice} kr.)</div>
             <div 
-              className="text-sm font-bold font-mono tabular-nums flex items-center justify-end gap-1 mt-0.5"
+              className="text-sm font-bold font-mono tabular-nums flex items-center gap-1"
               style={{ color: diffFromRef >= 0 ? "var(--color-profit)" : "var(--color-loss)" }}
             >
               {diffFromRef >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
