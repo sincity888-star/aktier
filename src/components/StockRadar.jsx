@@ -421,7 +421,7 @@ export function StockRadar({
           <button
             type="button"
             onClick={onGoBack}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-card)] hover:bg-slate-700 text-[var(--text-main)] font-bold text-xs border border-[var(--border-subtle)] active:scale-95 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--border-subtle-bright)] text-[var(--text-main)] font-bold text-xs border border-[var(--border-subtle)] active:scale-95 transition-all shadow-sm"
           >
             <ArrowLeft className="w-4 h-4 text-blue-400" />
             <span>← Tilbage til Overblik</span>
@@ -455,7 +455,7 @@ export function StockRadar({
         {/* Tilføj ny aktie knap */}
         <button
           onClick={() => setIsAddTickerOpen(true)}
-          className="px-3 py-2 rounded-2xl bg-[var(--bg-card)] border border-dashed border-slate-600 hover:border-blue-400 text-blue-400 hover:text-[var(--text-main)] flex items-center gap-1 text-xs font-bold whitespace-nowrap active:scale-95 transition-all"
+          className="px-3 py-2 rounded-2xl bg-[var(--bg-card)] border border-dashed border-[var(--border-subtle)] hover:border-blue-400 text-blue-400 hover:text-[var(--text-main)] flex items-center gap-1 text-xs font-bold whitespace-nowrap active:scale-95 transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Tilføj Ticker</span>
@@ -463,7 +463,7 @@ export function StockRadar({
       </div>
 
       {/* Hurtig visning af aktuel overvågning for valgt aktie */}
-      <div className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-blue-500/10 via-[var(--bg-card)] to-indigo-500/10 border border-blue-500/30 text-xs shadow-sm">
+      <div className="flex items-center justify-between p-3 rounded-2xl bg-[var(--bg-card)] border border-blue-500/30 text-xs shadow-sm">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
             <BellRing className="w-4 h-4" />
@@ -472,7 +472,7 @@ export function StockRadar({
             <div className="text-[11px] text-[var(--text-muted)] font-medium">Overvåger {currentStock.name}:</div>
             <div className="font-mono font-bold text-[var(--text-main)] flex items-center gap-2 mt-0.5">
               <span className="text-blue-400">Køb ved: -{currentAlert.dropPctThreshold.toFixed(1)}%</span>
-              <span className="text-slate-600">|</span>
+              <span className="text-[var(--text-muted)]">|</span>
               <span className="text-emerald-400">Sælg ved: +{currentAlert.risePctThreshold.toFixed(1)}%</span>
             </div>
           </div>
@@ -491,7 +491,7 @@ export function StockRadar({
       </div>
 
       {/* Hero Kort for den valgte aktie */}
-      <div className="p-4 rounded-3xl bg-gradient-to-br from-blue-500/10 via-[var(--bg-card)] to-[var(--bg-card-elevated)] border border-blue-500/30 shadow-xl">
+      <div className="p-4 rounded-3xl bg-[var(--bg-card)] border border-blue-500/30 shadow-xl">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2.5">
             <div 
@@ -697,7 +697,7 @@ export function StockRadar({
         <div className="space-y-3 animate-fade-in">
           <div className="p-4 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-3.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-main)]">
                 <Target className="w-4 h-4 text-emerald-400" />
                 <span>2-3% Kalkulator: {currentStock.name}</span>
               </div>
@@ -821,7 +821,7 @@ export function StockRadar({
         return (
           <div className="space-y-3.5 animate-fade-in">
             {/* 1. Sincity AI Kursvurdering: Stige eller Falde? */}
-            <div className="p-4 rounded-3xl bg-gradient-to-br from-blue-500/10 via-[var(--bg-card)] to-[var(--bg-card-elevated)] border border-blue-500/30 shadow-lg space-y-3">
+            <div className="p-4 rounded-3xl bg-[var(--bg-card)] border border-blue-500/30 shadow-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
@@ -895,7 +895,7 @@ export function StockRadar({
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                   {aiInsight.rationale}
                 </p>
-                <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-1.5 border-t border-slate-800 text-[11px] font-mono">
+                <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-1.5 border-t border-[var(--border-subtle)] text-[11px] font-mono">
                   <span className="text-[var(--text-muted)]">
                     🎯 {analysisTimeframe === "daily" ? "Dagens Målkurs (+2-3%):" : analysisTimeframe === "weekly" ? "Ugens Målkurs (Top):" : "3 Mdr. Målkurs:"}{" "}
                     <strong className="text-emerald-400 font-bold">{aiInsight.targetPrice}</strong>
@@ -921,7 +921,7 @@ export function StockRadar({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  <p className="text-xs text-[var(--text-main)] leading-relaxed font-medium">
                     {aiInsight.dailyVolatilityText}
                   </p>
                 </div>
@@ -939,7 +939,7 @@ export function StockRadar({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  <p className="text-xs text-[var(--text-main)] leading-relaxed font-medium">
                     {aiInsight.weeklyVolatilityText}
                   </p>
                 </div>
@@ -955,7 +955,7 @@ export function StockRadar({
                       Strategi: Dip & Profit
                     </span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  <p className="text-xs text-[var(--text-main)] leading-relaxed font-medium">
                     {aiInsight.frequencyText}
                   </p>
                 </div>
@@ -965,7 +965,7 @@ export function StockRadar({
             {/* 2. Interaktiv Kursgraf med 6 Perioder: 1D, 1 uge, 1 mdr, 3 mdr, 1 år, 5 år */}
             <div className="p-4 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <div className="font-bold text-slate-200 flex items-center gap-1.5">
+                <div className="font-bold text-[var(--text-main)] flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-blue-400" />
                   <span>Kursforløb for {currentStock.symbol}</span>
                 </div>
@@ -1037,7 +1037,7 @@ export function StockRadar({
       {activeTab === "alerts" && (
         <div className="p-4 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+            <div className="text-xs font-bold text-[var(--text-main)] flex items-center gap-1.5">
               <BellRing className="w-4 h-4 text-emerald-400" />
               <span>Indstil Overvågningsprocent: {currentStock.name}</span>
             </div>
@@ -1189,7 +1189,7 @@ export function StockRadar({
                   onChange={(e) => handleToggleEmailAlert(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                <div className="w-9 h-5 bg-[var(--border-subtle-bright)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
               </label>
             </div>
 
@@ -1259,7 +1259,7 @@ export function StockRadar({
               {/* Avancerede indstillinger for rigtig afsendelse */}
               {isEmailSettingsOpen && (
                 <div className="p-3.5 rounded-xl bg-[var(--bg-input)]/90 border border-[var(--border-subtle)] space-y-3 animate-fade-in">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-main)]">
                     <Key className="w-3.5 h-3.5 text-amber-400" />
                     <span>Forbind til rigtig Gmail-levering</span>
                   </div>
@@ -1288,9 +1288,9 @@ export function StockRadar({
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-800">
+                  <div className="pt-2 border-t border-[var(--border-subtle)]">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                      <span className="font-bold text-[var(--text-main)] flex items-center gap-1.5">
                         <Smartphone className="w-3.5 h-3.5 text-blue-400" />
                         <span>Live Telefon Push (0 koder)</span>
                       </span>
@@ -1312,12 +1312,12 @@ export function StockRadar({
               )}
 
               {sentEmailLogs.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-slate-800/80">
+                <div className="mt-2 pt-2 border-t border-[var(--border-subtle)]/80">
                   <div className="text-[10px] text-[var(--text-muted)] font-mono flex items-center justify-between mb-1">
                     <span>Seneste afsendte alarm ({sentEmailLogs.length}):</span>
                     <span>{new Date(sentEmailLogs[0].date).toLocaleTimeString("da-DK", { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  <div className="text-[11px] text-[var(--text-secondary)] truncate font-mono bg-[var(--bg-input)]/40 px-2 py-1 rounded border border-slate-800">
+                  <div className="text-[11px] text-[var(--text-secondary)] truncate font-mono bg-[var(--bg-input)]/40 px-2 py-1 rounded border border-[var(--border-subtle)]">
                     {sentEmailLogs[0].subject}
                   </div>
                 </div>
