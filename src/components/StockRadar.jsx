@@ -176,6 +176,7 @@ export function StockRadar({
   const [dataSourceInfo, setDataSourceInfo] = useState("Nasdaq Copenhagen (Yahoo Finance)");
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [editPriceInput, setEditPriceInput] = useState(currentPrice);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Swing-trade kalkulator states
   const [calcPrice, setCalcPrice] = useState(currentPrice);
@@ -1041,15 +1042,13 @@ export function StockRadar({
               <BellRing className="w-4 h-4 text-emerald-400" />
               <span>Indstil Overvågningsprocent: {currentStock.name}</span>
             </div>
-            <button
-              onClick={() => playAlertChime("buy")}
-              className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20"
-            >
+            <div className="flex gap-2"><button onClick={() => setShowSettings(!showSettings)} className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-main)] flex items-center gap-1 bg-[var(--bg-input)] px-2 py-1 rounded-lg border border-[var(--border-subtle)]"><Settings className="w-3.5 h-3.5" /><span>Indstillinger</span></button><button onClick={() => playAlertChime("buy")} className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20">
               <Volume2 className="w-3.5 h-3.5" />
               <span>Test Lyd</span>
             </button>
-          </div>
+          </div></div>
 
+          {showSettings && (<>
           <div className="text-xs text-[var(--text-secondary)] bg-[var(--bg-input)]/60 p-3 rounded-2xl border border-[var(--border-subtle)]/80">
             🔔 Appen holder øje med kursen live og giver besked med lyd og notifikation, når kursen afviger med de valgte procenter fra referencekursen (<strong className="text-[var(--text-main)] font-mono">{refPrice.toLocaleString("da-DK")} kr.</strong>).
           </div>
@@ -1068,6 +1067,7 @@ export function StockRadar({
               </button>
             </div>
           </div>
+          </>)}
 
           {/* Fald-alarm */}
           <div className="p-3.5 rounded-2xl bg-blue-950/30 border border-blue-500/40 space-y-3">
@@ -1164,6 +1164,7 @@ export function StockRadar({
           </div>
 
           {/* E-MAIL NOTIFIKATIONER SEKTION */}
+          {showSettings && (
           <div className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] space-y-3.5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1324,6 +1325,7 @@ export function StockRadar({
               )}
             </div>
           </div>
+          )}
         </div>
       )}
 
