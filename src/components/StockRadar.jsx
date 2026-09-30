@@ -593,11 +593,17 @@ export function StockRadar({
           <div className="grid grid-cols-2 gap-3">
             {/* SÆLG KNAP (Bid) */}
             <button 
-              onClick={() => onOpenTradeModal && onOpenTradeModal(selectedStockId, "SELL")}
-              className="flex flex-col items-center justify-center p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-rose-500/50 hover:bg-rose-500/10 active:scale-95 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+              onClick={() => onUpdateAlertConfig(selectedStockId, { ...currentAlert, mode: "SELL" })}
+              className={`flex flex-col items-center justify-center p-3 rounded-xl bg-[var(--bg-card)] border hover:bg-rose-500/10 active:scale-95 transition-all cursor-pointer shadow-sm relative overflow-hidden ${
+                currentAlert.mode === "SELL" 
+                  ? "border-rose-500 ring-2 ring-rose-500/50 bg-rose-500/5" 
+                  : "border-[var(--border-subtle)] hover:border-rose-500/50"
+              }`}
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500/70"></div>
-              <span className="text-[10px] font-bold text-rose-500 mb-0.5 tracking-wider">SÆLG</span>
+              <span className="text-[10px] font-bold text-rose-500 mb-0.5 tracking-wider">
+                {currentAlert.mode === "SELL" && "🎯 "}SÆLG (Bid)
+              </span>
               <span className="text-xl sm:text-2xl font-extrabold text-[var(--text-main)] font-mono tabular-nums">
                 {(currentPrice * 0.9995).toLocaleString("da-DK", { minimumFractionDigits: 2 })}
               </span>
@@ -605,11 +611,17 @@ export function StockRadar({
 
             {/* KØB KNAP (Ask) */}
             <button 
-              onClick={() => onOpenTradeModal && onOpenTradeModal(selectedStockId, "BUY")}
-              className="flex flex-col items-center justify-center p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+              onClick={() => onUpdateAlertConfig(selectedStockId, { ...currentAlert, mode: "BUY" })}
+              className={`flex flex-col items-center justify-center p-3 rounded-xl bg-[var(--bg-card)] border hover:bg-emerald-500/10 active:scale-95 transition-all cursor-pointer shadow-sm relative overflow-hidden ${
+                currentAlert.mode !== "SELL" // Default is BUY
+                  ? "border-emerald-500 ring-2 ring-emerald-500/50 bg-emerald-500/5" 
+                  : "border-[var(--border-subtle)] hover:border-emerald-500/50"
+              }`}
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500/70"></div>
-              <span className="text-[10px] font-bold text-emerald-500 mb-0.5 tracking-wider">KØB</span>
+              <span className="text-[10px] font-bold text-emerald-500 mb-0.5 tracking-wider">
+                {currentAlert.mode !== "SELL" && "🎯 "}KØB (Ask)
+              </span>
               <span className="text-xl sm:text-2xl font-extrabold text-[var(--text-main)] font-mono tabular-nums">
                 {(currentPrice * 1.0005).toLocaleString("da-DK", { minimumFractionDigits: 2 })}
               </span>
