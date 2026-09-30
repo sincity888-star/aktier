@@ -9,6 +9,7 @@
   --border-focus: rgba(59, 130, 246, 0.6);
   
   --text-primary: #f8fafc;
+  --text-main: #ffffff;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --text-faint: #475569;
@@ -497,6 +498,7 @@ input::placeholder {
   --border-focus: rgba(37, 99, 235, 0.6);
   
   --text-primary: #0f172a;
+  --text-main: #000000;
   --text-secondary: #334155;
   --text-muted: #64748b;
   --text-faint: #94a3b8;
