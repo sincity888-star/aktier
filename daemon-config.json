@@ -1,0 +1,26 @@
+{
+  "zealand": {
+    "isEnabled": true,
+    "referencePrice": 272.7,
+    "dropPctThreshold": 2,
+    "risePctThreshold": 3,
+    "soundEnabled": true,
+    "mode": "BUY"
+  },
+  "maersk": {
+    "isEnabled": true,
+    "referencePrice": 23240,
+    "dropPctThreshold": 2,
+    "risePctThreshold": 3,
+    "soundEnabled": true,
+    "mode": "BUY"
+  },
+  "ambu": {
+    "isEnabled": true,
+    "referencePrice": 68.2,
+    "dropPctThreshold": 2,
+    "risePctThreshold": 3,
+    "soundEnabled": true,
+    "mode": "BUY"
+  }
+}

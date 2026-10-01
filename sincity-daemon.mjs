@@ -120,8 +120,37 @@ async function fetchLivePrice(ticker) {
 
 async function checkMarkets() {
   const now = new Date();
-  
-  // Tjekker hvert minut for "Radar" følelsen. Undgår overdreven rate limiting.
+  const day = now.getDay();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+
+  if (hours === 0) lastAlertSent['morning_briefing'] = 0;
+
+  // Weekend check
+  if (day === 0 || day === 6) {
+    console.log(`[${now.toLocaleTimeString()}] 🛑 Børsen er lukket (Weekend). Venter...`);
+    return;
+  }
+
+  // Morning briefing 08:50 - 09:00
+  if (hours === 8 && minutes >= 50 && hours < 9) {
+    const lastBriefing = lastAlertSent['morning_briefing'] || 0;
+    if (now.getTime() - lastBriefing > 12 * 60 * 60 * 1000) {
+      await sendPushNotification(
+        "☕ Morgen Briefing",
+        "Goddag. Markedet åbner om kort tid. Dine radarer er armeret og klar til action.",
+        true
+      );
+      lastAlertSent['morning_briefing'] = now.getTime();
+    }
+  }
+
+  // Closed hours check
+  if (hours < 9 || hours >= 17) {
+    console.log(`[${now.toLocaleTimeString()}] 🛑 Børsen er lukket (Udenfor åbningstid). Venter...`);
+    return;
+  }
+
   console.log(`[${now.toLocaleTimeString()}] 🔎 Læser markedet...`);
 
   for (const [id, config] of Object.entries(alertConfigs)) {

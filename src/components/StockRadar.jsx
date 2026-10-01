@@ -435,18 +435,27 @@ export function StockRadar({
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
         {stocks.map(stk => {
           const isSelected = stk.id === selectedStockId;
+          const pct = stk.changePercent || 0;
+          const isUp = pct > 0;
+          const isDown = pct < 0;
+
           return (
             <button
               key={stk.id}
               onClick={() => setSelectedStockId(stk.id)}
-              className={`px-3 py-2 rounded-2xl flex items-center gap-2 transition-all whitespace-nowrap border ${
+              className={`min-w-[110px] px-3 py-2 rounded-2xl flex flex-col gap-1 transition-all border ${
                 isSelected
-                  ? "bg-blue-600 text-[var(--text-main)] border-blue-400/50 shadow-md shadow-blue-600/30 scale-105"
-                  : "bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border-[var(--border-subtle)]"
+                  ? "bg-blue-600 text-white border-blue-400/50 shadow-md shadow-blue-600/30 scale-105"
+                  : "bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border-[var(--border-subtle)] hover:border-[var(--border-subtle-bright)]"
               }`}
             >
-              <span className="font-bold text-xs">{stk.symbol}</span>
-              <span className="font-mono text-xs opacity-90 tabular-nums">
+              <div className="flex justify-between items-center w-full gap-2">
+                <span className="font-bold text-xs">{stk.symbol}</span>
+                <span className={`text-[10px] font-bold px-1 rounded-sm ${isSelected ? 'bg-black/20 text-white' : isUp ? 'bg-emerald-500/10 text-emerald-500' : isDown ? 'bg-red-500/10 text-red-500' : 'bg-gray-500/10 text-gray-500'}`}>
+                  {isUp ? '+' : ''}{pct.toFixed(1)}%
+                </span>
+              </div>
+              <span className={`font-mono text-[11px] tabular-nums self-start ${isSelected ? 'text-blue-100' : 'text-[var(--text-main)]'}`}>
                 {stk.currentPrice.toLocaleString("da-DK")} kr.
               </span>
             </button>
@@ -1114,6 +1123,14 @@ export function StockRadar({
                 -{currentAlert.dropPctThreshold.toFixed(1)}%
               </span>
             </div>
+            {currentAlert.dropPctThreshold > (stats?.avgDailySpreadPct || 2.5) * 1.2 && (
+              <div className="text-[10px] bg-amber-900/40 text-amber-300 border border-amber-500/30 p-2 rounded-lg flex items-start gap-1.5 mt-1">
+                <span>⚠️</span>
+                <span>
+                  <strong>Kvantitativ advarsel:</strong> Historisk dagsspænd for {currentStock.symbol} er kun <strong>{stats?.avgDailySpreadPct || 2.5}%</strong>. Et fald på {currentAlert.dropPctThreshold.toFixed(1)}% er statistisk usandsynligt i dag.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Stignings-alarm */}
@@ -1161,6 +1178,14 @@ export function StockRadar({
                 +{currentAlert.risePctThreshold.toFixed(1)}%
               </span>
             </div>
+            {currentAlert.risePctThreshold > (stats?.avgDailySpreadPct || 2.5) * 1.2 && (
+              <div className="text-[10px] bg-amber-900/40 text-amber-300 border border-amber-500/30 p-2 rounded-lg flex items-start gap-1.5 mt-1">
+                <span>⚠️</span>
+                <span>
+                  <strong>Kvantitativ advarsel:</strong> Historisk dagsspænd for {currentStock.symbol} er kun <strong>{stats?.avgDailySpreadPct || 2.5}%</strong>. En stigning på {currentAlert.risePctThreshold.toFixed(1)}% er statistisk usandsynligt i dag.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* E-MAIL NOTIFIKATIONER SEKTION */}
