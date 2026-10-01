@@ -27,14 +27,22 @@ export default function App() {
     if (!saved) return INITIAL_STOCKS;
     try {
       const parsed = JSON.parse(saved);
+      // Sanity check for bad data from previous bug
+      const sanitized = parsed.map(p => {
+        if (typeof p.currentPrice === 'object') {
+          return { ...p, currentPrice: p.currentPrice.currentPrice || INITIAL_STOCKS.find(i => i.id === p.id).currentPrice };
+        }
+        return p;
+      });
+
       const market = getDanishMarketStatus();
       if (!market.isOpen) {
         return INITIAL_STOCKS.map(init => {
-          const existing = parsed.find(p => p.id === init.id);
+          const existing = sanitized.find(p => p.id === init.id);
           return existing ? { ...existing, ...init } : init;
         });
       }
-      return parsed;
+      return sanitized;
     } catch {
       return INITIAL_STOCKS;
     }

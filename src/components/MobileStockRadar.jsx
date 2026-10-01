@@ -40,7 +40,9 @@ export function MobileStockRadar({
     setIsSyncing(true);
     try {
       const liveData = await fetchLiveStockData(selectedStockId);
-      if (liveData) onUpdateStockPrice(selectedStockId, liveData);
+      if (liveData && liveData.currentPrice) {
+        onUpdateStockPrice(selectedStockId, liveData.currentPrice);
+      }
     } catch (err) {}
     setIsSyncing(false);
   };
