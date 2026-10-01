@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Header } from "./components/Header";
 import { StockRadar } from "./components/StockRadar";
 import { MobileStockRadar } from "./components/MobileStockRadar";
+import { HomeScreen } from "./components/HomeScreen";
+import { BottomNav } from "./components/BottomNav";
 import { AlertBanner } from "./components/AlertBanner";
 import { LoginScreen } from "./components/LoginScreen";
 import { INITIAL_STOCKS } from "./data/mockData";
@@ -164,12 +166,20 @@ export default function App() {
     return <LoginScreen onLogin={(userData) => setUser(userData)} />;
   }
 
+  const [currentRoute, setCurrentRoute] = useState("home");
+  const [selectedStockId, setSelectedStockId] = useState(null);
+
+  const handleSelectStock = (id) => {
+    setSelectedStockId(id);
+    setCurrentRoute("stock");
+  };
+
   return (
     <div className={`app-container-wrapper ${isPhoneMode ? "phone-mode" : "full-width"}`}>
-      <main className="app-screen">
+      <main className="app-screen relative">
         <Header
           activeTab="radar"
-          onGoBack={() => {}}
+          onGoBack={currentRoute !== "home" ? () => setCurrentRoute("home") : undefined}
           onSelectTab={() => {}}
           currency="DKK"
           onToggleCurrency={() => {}}
@@ -191,18 +201,30 @@ export default function App() {
         )}
 
         <div className="flex-1 pb-4 sm:pb-8 overflow-y-auto">
-          <div className="animate-fade-in h-full">
-            <MobileStockRadar
-              stocks={stocks}
-              onAddNewStock={() => {}}
-              currency="DKK"
-              alertConfigs={alertConfigs}
-              onUpdateAlertConfig={handleUpdateAlertConfig}
-              onUpdateStockPrice={handleUpdateStockPrice}
-              onGoBack={() => {}}
-            />
+          <div className="animate-fade-in h-full flex flex-col">
+            {currentRoute === "home" && (
+              <HomeScreen 
+                stocks={stocks} 
+                alertConfigs={alertConfigs} 
+                onSelectStock={handleSelectStock} 
+              />
+            )}
+            
+            {currentRoute === "stock" && (
+              <MobileStockRadar
+                stocks={selectedStockId ? [stocks.find(s => s.id === selectedStockId) || stocks[0]] : stocks}
+                onAddNewStock={() => {}}
+                currency="DKK"
+                alertConfigs={alertConfigs}
+                onUpdateAlertConfig={handleUpdateAlertConfig}
+                onUpdateStockPrice={handleUpdateStockPrice}
+                onGoBack={() => setCurrentRoute("home")}
+              />
+            )}
           </div>
         </div>
+
+        <BottomNav currentRoute={currentRoute} onNavigate={setCurrentRoute} />
       </main>
     </div>
   );
