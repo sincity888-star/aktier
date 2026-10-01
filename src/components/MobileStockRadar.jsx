@@ -149,7 +149,7 @@ export function MobileStockRadar({
           <div className="space-y-4 animate-fade-in">
             <div className="p-5 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] flex flex-col items-center justify-center text-center shadow-md">
               <span className="text-[10px] uppercase font-bold text-blue-400 mb-2 tracking-widest">Sincity Radar Score</span>
-              <div className="text-5xl font-extrabold text-white bg-clip-text text-transparent bg-gradient-to-br from-blue-400 to-emerald-400 mb-2">
+              <div className="text-5xl font-extrabold text-white bg-clip-text text-transparent bg-gradient-to-br from-blue-400 to-emerald-400 mb-2" style={{ WebkitTextFillColor: 'transparent', color: 'transparent' }}>
                 {aiInsight.direction === "UP" ? "84" : aiInsight.direction === "DOWN" ? "21" : "50"}
               </div>
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${aiInsight.direction === "UP" ? 'bg-emerald-500/20 text-emerald-400' : aiInsight.direction === "DOWN" ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>

@@ -62,26 +62,26 @@ export function HomeScreen({ stocks, alertConfigs, onSelectStock }) {
 
         {/* 2. RADAR PULSE HERO */}
         <section>
-          <div className="p-5 rounded-3xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden">
+          <div className="p-5 rounded-3xl bg-blue-600 bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10">
               <Activity className="w-32 h-32" />
             </div>
             <div className="relative z-10">
-              <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-blue-200 mb-2">Radar Pulse</h2>
-              <div className="text-3xl font-extrabold mb-4">{processedStocks.length} Aktier Detekteret</div>
+              <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-blue-200 mb-2" style={{ color: '#bfdbfe' }}>Radar Pulse</h2>
+              <div className="text-3xl font-extrabold mb-4" style={{ color: 'white' }}>{processedStocks.length} Aktier Detekteret</div>
               
               <div className="grid grid-cols-2 gap-3 mb-5">
                 <div className="flex flex-col">
-                  <span className="text-2xl font-bold text-white">{processedStocks.filter(s => s.insight.direction === "UP").length}</span>
-                  <span className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Stærkt Momentum</span>
+                  <span className="text-2xl font-bold text-white" style={{ color: 'white' }}>{processedStocks.filter(s => s.insight.direction === "UP").length}</span>
+                  <span className="text-[10px] font-bold text-blue-200 uppercase tracking-wider" style={{ color: '#bfdbfe' }}>Stærkt Momentum</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-2xl font-bold text-white">{processedStocks.filter(s => s.stats.avgDailySpreadPct >= 2.0).length}</span>
-                  <span className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Høj Volatilitet</span>
+                  <span className="text-2xl font-bold text-white" style={{ color: 'white' }}>{processedStocks.filter(s => s.stats.avgDailySpreadPct >= 2.0).length}</span>
+                  <span className="text-[10px] font-bold text-blue-200 uppercase tracking-wider" style={{ color: '#bfdbfe' }}>Høj Volatilitet</span>
                 </div>
               </div>
 
-              <button className="text-xs font-bold text-white flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+              <button className="text-xs font-bold text-white flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity" style={{ color: 'white' }}>
                 Se alle signaler <ChevronRight className="w-3 h-3" />
               </button>
             </div>
