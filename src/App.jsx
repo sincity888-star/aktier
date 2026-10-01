@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Header } from "./components/Header";
 import { StockRadar } from "./components/StockRadar";
+import { MobileStockRadar } from "./components/MobileStockRadar";
 import { AlertBanner } from "./components/AlertBanner";
 import { LoginScreen } from "./components/LoginScreen";
 import { INITIAL_STOCKS } from "./data/mockData";
@@ -182,14 +183,13 @@ export default function App() {
         )}
 
         <div className="flex-1 pb-4 sm:pb-8 overflow-y-auto">
-          <div className="animate-fade-in">
-            <StockRadar
+          <div className="animate-fade-in h-full">
+            <MobileStockRadar
               stocks={stocks}
               onAddNewStock={() => {}}
               currency="DKK"
               alertConfigs={alertConfigs}
               onUpdateAlertConfig={handleUpdateAlertConfig}
-              onOpenTradeModal={() => {}}
               onUpdateStockPrice={handleUpdateStockPrice}
               onGoBack={() => {}}
             />

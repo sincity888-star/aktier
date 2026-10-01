@@ -2,10 +2,10 @@
   "zealand": {
     "isEnabled": true,
     "referencePrice": 272.7,
-    "dropPctThreshold": 2,
-    "risePctThreshold": 3,
+    "dropPctThreshold": 0.5,
+    "risePctThreshold": 0.5,
     "soundEnabled": true,
-    "mode": "BUY"
+    "mode": "SELL"
   },
   "maersk": {
     "isEnabled": true,
