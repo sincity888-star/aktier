@@ -220,6 +220,24 @@ export default function App() {
                 onGoBack={() => setCurrentRoute("home")}
               />
             )}
+            
+            {["watchlist", "alerts", "more", "radar"].includes(currentRoute) && currentRoute !== "stock" && (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center h-full min-h-[60vh]">
+                <div className="w-16 h-16 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-center mb-4">
+                  <span className="text-2xl">🚧</span>
+                </div>
+                <h2 className="text-lg font-extrabold mb-2 text-[var(--text-main)] capitalize">{currentRoute}</h2>
+                <p className="text-sm font-semibold text-[var(--text-muted)]">
+                  Denne sektion er under konstruktion. Her kommer der en dedikeret fuldskærms-oplevelse senere.
+                </p>
+                <button 
+                  onClick={() => setCurrentRoute("home")}
+                  className="mt-6 px-6 py-2 rounded-full bg-blue-600 text-white font-bold text-xs shadow-md shadow-blue-500/20"
+                >
+                  Gå tilbage til Home
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
