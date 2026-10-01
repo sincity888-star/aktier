@@ -14,6 +14,8 @@ import { auth, onAuthStateChanged } from "./utils/firebase";
 export default function App() {
   const [user, setUser] = useState(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [currentRoute, setCurrentRoute] = useState("home");
+  const [selectedStockId, setSelectedStockId] = useState(null);
 
   // Lyt til Firebase login-status
   useEffect(() => {
@@ -165,9 +167,6 @@ export default function App() {
   if (!user) {
     return <LoginScreen onLogin={(userData) => setUser(userData)} />;
   }
-
-  const [currentRoute, setCurrentRoute] = useState("home");
-  const [selectedStockId, setSelectedStockId] = useState(null);
 
   const handleSelectStock = (id) => {
     setSelectedStockId(id);
