@@ -1,20 +1,95 @@
-// Opsætning af din hemmelige notifikations-kanal
-// Download appen "ntfy" på din telefon og abonnér på dette præcise emne:
-const NTFY_TOPIC = "sincity_aktie_radar_23";
-console.log(`\n======================================================`);
-console.log(`🔔 SINCITY BAGGRUNDS DAEMON STARTET`);
-console.log(`======================================================`);
-console.log(`1. Download appen 'ntfy' på din iPhone eller Android.`);
-console.log(`2. Tryk på '+' og abonnér på dette emne:\n\n   👉 ${NTFY_TOPIC} 👈\n`);
-console.log(`3. Lad dette terminalvindue køre i baggrunden.`);
-console.log(`======================================================\n`);
+import http from 'http';
+import fs from 'fs';
 
-// Konfigurer de aktier, du vil overvåge og dine KØBS/SALGS-mål
-const PORTFOLIO_TARGETS = [
-  { symbol: 'MAERSK-B', triggerBuyBelow: 9500, triggerSellAbove: 10500, label: "Mærsk B" },
-  { symbol: 'ZEAL', triggerBuyBelow: 800, triggerSellAbove: 950, label: "Zealand Pharma" },
-  { symbol: 'AMBU-B', triggerBuyBelow: 115, triggerSellAbove: 135, label: "Ambu" }
-];
+const NTFY_TOPIC = "sincity_aktie_radar_23";
+const CONFIG_FILE = "daemon-config.json";
+
+// Default configs if file is missing
+let alertConfigs = {
+  zealand: { isEnabled: true, referencePrice: 272.70, dropPctThreshold: 2.0, risePctThreshold: 3.0, soundEnabled: true, mode: "BUY" },
+  maersk: { isEnabled: true, referencePrice: 23240.00, dropPctThreshold: 2.0, risePctThreshold: 3.0, soundEnabled: true, mode: "BUY" },
+  ambu: { isEnabled: true, referencePrice: 68.20, dropPctThreshold: 2.0, risePctThreshold: 3.0, soundEnabled: true, mode: "BUY" }
+};
+
+// Map of internal IDs to actual Yahoo Finance tickers
+const TICKER_MAP = {
+  zealand: { symbol: 'ZEAL', label: 'Zealand Pharma' },
+  maersk: { symbol: 'MAERSK-B', label: 'Mærsk B' },
+  ambu: { symbol: 'AMBU-B', label: 'Ambu B' }
+};
+
+// Spam protection state
+const lastAlertSent = {}; 
+
+function loadConfig() {
+  try {
+    if (fs.existsSync(CONFIG_FILE)) {
+      const data = fs.readFileSync(CONFIG_FILE, 'utf8');
+      alertConfigs = JSON.parse(data);
+    }
+  } catch (err) {
+    console.error("Fejl ved læsning af config:", err.message);
+  }
+}
+
+function saveConfig(data) {
+  try {
+    alertConfigs = data;
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(data, null, 2));
+    console.log(`[${new Date().toLocaleTimeString()}] ⚙️ Daemon modtog ny Target/Mode fra Appen!`);
+  } catch (err) {
+    console.error("Fejl ved gem config:", err.message);
+  }
+}
+
+// HTTP Server so the React App can sync its state to the Daemon
+const server = http.createServer((req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
+  if (req.method === 'POST' && req.url === '/update-config') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        saveConfig(data);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (e) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ error: "Invalid JSON" }));
+      }
+    });
+  } else if (req.method === 'GET' && req.url === '/config') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(alertConfigs));
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
+});
+
+server.listen(3001, () => {
+  console.log(`\n======================================================`);
+  console.log(`🔔 SINCITY DAEMON STARTET (FASE 2: MODE-AWARE)`);
+  console.log(`======================================================`);
+  console.log(`📡 Venter på konfigurationer fra Frontend (Port 3001)`);
+  console.log(`📱 Push-notifikationer kører via Ntfy.sh`);
+  console.log(`👉 Abonnér på: ${NTFY_TOPIC}`);
+  console.log(`======================================================\n`);
+  loadConfig();
+  checkMarkets();
+});
 
 async function sendPushNotification(title, message, isBuy = true) {
   try {
@@ -29,7 +104,7 @@ async function sendPushNotification(title, message, isBuy = true) {
     });
     console.log(`[${new Date().toLocaleTimeString()}] 📨 Push-besked sendt!`);
   } catch (err) {
-    console.error("Kunne ikke sende push-besked", err);
+    console.error("Kunne ikke sende push-besked", err.message);
   }
 }
 
@@ -45,44 +120,52 @@ async function fetchLivePrice(ticker) {
 
 async function checkMarkets() {
   const now = new Date();
-  const day = now.getDay();
-  const hour = now.getHours();
+  
+  // Tjekker hvert minut for "Radar" følelsen. Undgår overdreven rate limiting.
+  console.log(`[${now.toLocaleTimeString()}] 🔎 Læser markedet...`);
 
-  // Kør kun på hverdage (Mandag=1, Fredag=5) mellem kl 09:00 og 17:00
-  // if (day === 0 || day === 6 || hour < 9 || hour >= 17) {
-  //   console.log(`[${now.toLocaleTimeString()}] Børsen er lukket. Venter...`);
-  //   return;
-  // }
+  for (const [id, config] of Object.entries(alertConfigs)) {
+    if (!config.isEnabled) continue;
+    
+    const stockInfo = TICKER_MAP[id];
+    if (!stockInfo) continue;
 
-  console.log(`[${now.toLocaleTimeString()}] 🔎 Tjekker aktiekurser på Nasdaq Copenhagen...`);
-
-  for (const stock of PORTFOLIO_TARGETS) {
-    const price = await fetchLivePrice(stock.symbol);
+    const price = await fetchLivePrice(stockInfo.symbol);
     if (!price) continue;
 
-    console.log(`  - ${stock.label}: ${price} DKK`);
+    const buyTarget = config.referencePrice * (1 - config.dropPctThreshold / 100);
+    const sellTarget = config.referencePrice * (1 + config.risePctThreshold / 100);
 
-    // Tjek Købssignal
-    if (price <= stock.triggerBuyBelow) {
-      await sendPushNotification(
-        `KØBSSIGNAL: ${stock.label}`,
-        `${stock.label} er nede i ${price} DKK. Den er under din købsgrænse på ${stock.triggerBuyBelow}!`,
-        true
-      );
-    }
-    // Tjek Salgssignal
-    else if (price >= stock.triggerSellAbove) {
-      await sendPushNotification(
-        `SALGSSIGNAL: ${stock.label}`,
-        `${stock.label} har ramt ${price} DKK. Tag profit! (+2-3% målet er nået over ${stock.triggerSellAbove})`,
-        false
-      );
+    // MODE LOGIC (The core upgrade)
+    if (config.mode !== "SELL") {
+      // BUY MODE (Kun fokus på dyk)
+      if (price <= buyTarget) {
+        const lastSent = lastAlertSent[`${id}_buy`] || 0;
+        if (now.getTime() - lastSent > 30 * 60 * 1000) { // Max 1 notifikation pr 30 min
+          await sendPushNotification(
+            `KØBSSIGNAL: ${stockInfo.label}`,
+            `${stockInfo.label} er nede i ${price} kr. (Faldet mere end ${config.dropPctThreshold}%). Klar til KØB!`,
+            true
+          );
+          lastAlertSent[`${id}_buy`] = now.getTime();
+        }
+      }
+    } else {
+      // SELL MODE (Kun fokus på stigninger)
+      if (price >= sellTarget) {
+        const lastSent = lastAlertSent[`${id}_sell`] || 0;
+        if (now.getTime() - lastSent > 30 * 60 * 1000) {
+          await sendPushNotification(
+            `SALGSSIGNAL: ${stockInfo.label}`,
+            `${stockInfo.label} er oppe i ${price} kr. (Steget mere end ${config.risePctThreshold}%). Tag profit!`,
+            false
+          );
+          lastAlertSent[`${id}_sell`] = now.getTime();
+        }
+      }
     }
   }
 }
 
-// Kør første tjek med det samme
-checkMarkets();
-
-// Kør derefter hvert 15. minut (15 * 60 * 1000 ms)
-setInterval(checkMarkets, 15 * 60 * 1000);
+// Check hver 60. sekund (1 minut)
+setInterval(checkMarkets, 60 * 1000);

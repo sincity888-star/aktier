@@ -72,6 +72,15 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem("nordic_multi_alert_configs", JSON.stringify(alertConfigs));
+    
+    // Sync with the backend daemon running on port 3001
+    fetch("http://localhost:3001/update-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(alertConfigs)
+    }).catch(err => {
+      // Daemon might not be running, silently ignore in UI
+    });
   }, [alertConfigs]);
 
   useEffect(() => {
